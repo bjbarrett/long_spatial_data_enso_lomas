@@ -60,7 +60,7 @@ sd_df <- aggregate(mei ~ year, d_mei, sd)
 names(sd_df)[2] <- "sd_annual_mei"
 ## get akdes
 # get UD telemetry object
-UD <- readRDS("/Users/sifaka/Downloads/slp_1990-2019_RSF_AKDEs.rds")
+UD <- readRDS("~/Downloads/slp_1990-2019_RSF_AKDEs.rds")
 
 # function to get summary information from AKDEs
 summarize_akde <- function(akde){
