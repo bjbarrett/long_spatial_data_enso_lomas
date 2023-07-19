@@ -141,7 +141,7 @@ list_area_2 <- list(
   kde_scale=d_hr_gs_3$scale 
 )
 
-###visually inspect eate shape
+###visually inspect rate shape
 for(i in 10:20){
   plot(density(rgamma(10000,shape=d_akde$shape[[i]], rate=d_akde$rate[[i]] ) , xlim=c(0,10)) , main="blah" )
   lines(density(rgamma(10000,shape=d_akde$shape[[i]], scale=d_akde$scale[[i]] ) ) , lty=2 )
