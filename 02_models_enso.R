@@ -265,3 +265,11 @@ fit_hr_mei_gs_meas_er= stan( file = file_name,
 precis(fit_hr_mei_gs_meas_er , depth=2 , c("v_mu" , "sigma_g"))
 precis(fit_hr_mei_gs_meas_er , depth=2 , c("v_mu" , "sigma_g"))
 precis(fit_hr_mei_gs_meas_er , depth=3 )
+
+
+
+#####seasonal models
+d_hr_seas <-  read.csv("data/df_slpHRarea_seasonal_error.csv")
+str(d_hr_seas)
+d_hr_seas$group_index <- as.integer(as.factor(d_hr_gs$group))
+d_hr_gs$group_size_std <- standardize(d_hr_gs$group_size)
