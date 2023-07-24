@@ -7,9 +7,9 @@ library(tidyverse)
 
 #get enso data
 mei <- clean_names(download_mei())
-d_mei <- mei[mei$year >= min(d_hr_gs$year),]
+d_mei <- mei[mei$year >= min(d_hr_gs$year) - 1,]
 d_mei <- d_mei[complete.cases(d_mei),]
-plot(d_mei$mei~d_mei$date)
+plot(mei~date , data=d_mei)
 #combie data frames, will do posterior across time series later
 str(d_hr_gs)
 str(d_mei)
@@ -24,7 +24,7 @@ abline(v=d_mei$date[1:33] , col="grey")
 d_hr_gs_2 <- merge(d_hr_gs, d_mei , by="year")
 d_hr_gs_2 <- d_hr_gs_2[d_hr_gs_2$month=="JJ",]
 min(d_mei$year)
-d_mei$year_index_overall <- d_mei$year - 1990
+d_mei$year_index_overall <- d_mei$year - 1989
 
 
 #all groups
@@ -96,7 +96,38 @@ d_hr_gs_3 <- merge(d_hr_gs_3, d_akde , by="id")
 d_hr_gs_3$year_index <- as.integer(as.factor(d_hr_gs_3$year))
 d_mei_hr_data <- d_mei[is.element(d_mei$year , d_hr_gs_3$year),]
 
+d_mei <- d_mei %>%
+  mutate(date = as.Date(date, "%Y-%m-%d")) %>%
+  arrange(date)
 
+min(d_mei$date[d_mei$year==1991])
+
+#make mei datasets
+pasta <- min(which(d_mei$year==1991))
+d_mei[pasta:(pasta+11),]
+mei_12m_same <- d_mei[pasta:(pasta+11),]
+for(swag in 1992:max(d_mei$year)){
+  shins <- min(which(d_mei$year==swag))
+  mei_12m_same <- rbind(mei_12m_same , d_mei[(shins-6):(shins+5),] )
+}
+mei_12m_same
+
+#one year, shifted 6 months
+pasta <- min(which(d_mei$year==1991))
+mei_12m_6shift <- d_mei[(pasta-6):(pasta+5),]
+#fuck with indexing
+for(swag in 1992:max(d_mei$year)){
+  shins <- min(which(d_mei$year==swag))
+  mei_12m_6shift <- rbind(mei_12m_6shift, d_mei[(shins-6):(shins+5),] )
+}
+mei_12m_6shift
+
+# we need timescales
+#same year
+#year shifted six months
+#two years
+
+mei_12m_same
 # d_hr_ov$year <- d_hr_ov$y1
 # d_hr_ov_3 <-merge(d_hr_ov, mean_df , by="year")
 
@@ -141,6 +172,10 @@ list_area_2 <- list(
   kde_scale=d_hr_gs_3$scale 
 )
 
+min(d_mei_hr_data)
+which(d_mei_hr_data$mei)
+mei_same_year
+mei_year_six_shift
 ###visually inspect eate shape
 for(i in 10:20){
   plot(density(rgamma(10000,shape=d_akde$shape[[i]], rate=d_akde$rate[[i]] ) , xlim=c(0,10)) , main="blah" )
@@ -271,5 +306,9 @@ precis(fit_hr_mei_gs_meas_er , depth=3 )
 #####seasonal models
 d_hr_seas <-  read.csv("data/df_slpHRarea_seasonal_error.csv")
 str(d_hr_seas)
-d_hr_seas$group_index <- as.integer(as.factor(d_hr_gs$group))
-d_hr_gs$group_size_std <- standardize(d_hr_gs$group_size)
+d_hr_seas$group <- substr(d_hr_seas$id, 1, 2)
+d_hr_seas$group_index <- as.integer(as.factor(d_hr_seas$group))
+d_hr_seas$group_size_std <- standardize(d_hr_seas$group_size)
+d_hr_seas$seas <- substr(d_hr_seas$id, 4, 6)
+d_hr_seas$seas_index <- as.integer(as.factor(d_hr_seas$seas))
+d_hr_seas$year <-substr(d_hr_seas$id, start=8 , stop=16)
