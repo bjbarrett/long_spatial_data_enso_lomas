@@ -94,14 +94,13 @@ d_hr_gs_3 <- merge(d_hr_gs_3, sd_df , by="year")
 d_hr_gs_3 <- merge(d_hr_gs_3, d_akde , by="id")
 
 d_hr_gs_3$year_index <- as.integer(as.factor(d_hr_gs_3$year))
-d_mei_hr_data <- d_mei[is.element(d_mei$year , d_hr_gs_3$year),]
 
 d_mei <- d_mei %>%
   mutate(date = as.Date(date, "%Y-%m-%d")) %>%
   arrange(date)
+d_mei$year_analyze <- NA
 
 min(d_mei$date[d_mei$year==1991])
-
 #make mei datasets
 pasta <- min(which(d_mei$year==1991))
 d_mei[pasta:(pasta+11),]
@@ -115,23 +114,47 @@ mei_12m_same
 #one year, shifted 6 months
 pasta <- min(which(d_mei$year==1991))
 mei_12m_6shift <- d_mei[(pasta-6):(pasta+5),]
+mei_12m_6shift$year_index_overall <- 1
+mei_12m_6shift$year_analyze <- 1991
 #fuck with indexing
 for(swag in 1992:max(d_mei$year)){
   shins <- min(which(d_mei$year==swag))
   mei_12m_6shift <- rbind(mei_12m_6shift, d_mei[(shins-6):(shins+5),] )
+  meow <- nrow(mei_12m_6shift)
+  mei_12m_6shift$year_index_overall[(meow-11):meow] <- swag-1990
+  mei_12m_6shift$year_analyze[(meow-11):meow]  <- rep(swag,12)
 }
 mei_12m_6shift
+
+#one year, shifted 12 months
+pasta <- min(which(d_mei$year==1991))
+mei_12m_12shift <- d_mei[(pasta-11):(pasta-1),]
+mei_12m_12shift$year_index_overall <- 1
+mei_12m_12shift$year_analyze <- 1991
+#fuck with indexing
+for(swag in 1992:max(d_mei$year)){
+  shins <- min(which(d_mei$year==swag))
+  mei_12m_12shift <- rbind(mei_12m_12shift, d_mei[(shins-11):(shins-1),] )
+  meow <- nrow(mei_12m_12shift)
+  mei_12m_12shift$year_index_overall[(meow-11):meow] <- swag-1990
+  mei_12m_12shift$year_analyze[(meow-11):meow]  <- rep(swag,12)
+}
+mei_12m_12shift
 
 # we need timescales
 #same year
 #year shifted six months
 #two years
 
-mei_12m_same
 # d_hr_ov$year <- d_hr_ov$y1
 # d_hr_ov_3 <-merge(d_hr_ov, mean_df , by="year")
+###for same year
+d_mei_hr_data <- d_mei[is.element(d_mei$year , d_hr_gs_3$year),]
+#for 1 year 6 mos shifted
+d_mei_hr_data_6mosshift <- mei_12m_6shift[is.element(mei_12m_6shift$year_analyze , d_hr_gs_3$year),]
+d_mei_hr_data_12mosshift <- mei_12m_12shift[is.element(mei_12m_12shift$year_analyze , d_hr_gs_3$year),]
 
-str(d_hr_gs_3)
+
 
 list_area <- list(
   hr_area_mean=d_hr_gs_3$hr_area_mean ,
@@ -171,6 +194,58 @@ list_area_2 <- list(
   kde_rate=d_hr_gs_3$rate ,
   kde_scale=d_hr_gs_3$scale 
 )
+
+list_area_3 <- list(
+  hr_area_mean=d_hr_gs_3$hr_area_mean ,
+  hr_area_high=d_hr_gs_3$hr_area_high ,
+  hr_area_low=d_hr_gs_3$hr_area_low ,
+  hr_area_sd=d_hr_gs_3$hr_area_sd ,
+  hr_area_rate=d_hr_gs_3$rate ,
+  hr_area_shape=d_hr_gs_3$shape ,
+  group_index=d_hr_gs_3$group_index ,
+  group_size=d_hr_gs_3$group_size_std ,
+  year_index=d_hr_gs_3$year_index,
+  mei=d_mei_hr_data_6mosshift$mei ,
+  year_mei=d_mei_hr_data_6mosshift$year_analyze ,
+  year_index_mei=as.integer(as.factor(d_mei_hr_data_6mosshift$year_analyze)) ,
+  N_years=length(unique(d_mei_hr_data_6mosshift$year_analyze)) ,
+  N=nrow(d_hr_gs_3) ,
+  N_groups=length(unique(d_hr_gs_3$group_index)) ,
+  mean_annual_mei=d_hr_gs_3$mean_annual_mei ,
+  min_annual_mei=d_hr_gs_3$min_annual_mei ,
+  max_annual_mei=d_hr_gs_3$max_annual_mei ,
+  sd_annual_mei=d_hr_gs_3$sd_annual_mei ,
+  kde_shape=d_hr_gs_3$shape ,
+  kde_rate=d_hr_gs_3$rate ,
+  kde_scale=d_hr_gs_3$scale 
+)
+
+list_area_4 <- list(
+  hr_area_mean=d_hr_gs_3$hr_area_mean ,
+  hr_area_high=d_hr_gs_3$hr_area_high ,
+  hr_area_low=d_hr_gs_3$hr_area_low ,
+  hr_area_sd=d_hr_gs_3$hr_area_sd ,
+  hr_area_rate=d_hr_gs_3$rate ,
+  hr_area_shape=d_hr_gs_3$shape ,
+  group_index=d_hr_gs_3$group_index ,
+  group_size=d_hr_gs_3$group_size_std ,
+  year_index=d_hr_gs_3$year_index,
+  mei=d_mei_hr_data_12mosshift$mei ,
+  year_mei=d_mei_hr_data_12mosshift$year_analyze ,
+  year_index_mei=as.integer(as.factor(d_mei_hr_data_12mosshift$year_analyze)) ,
+  N_years=length(unique(d_mei_hr_data_12mosshift$year_analyze)) ,
+  N=nrow(d_hr_gs_3) ,
+  N_groups=length(unique(d_hr_gs_3$group_index)) ,
+  mean_annual_mei=d_hr_gs_3$mean_annual_mei ,
+  min_annual_mei=d_hr_gs_3$min_annual_mei ,
+  max_annual_mei=d_hr_gs_3$max_annual_mei ,
+  sd_annual_mei=d_hr_gs_3$sd_annual_mei ,
+  kde_shape=d_hr_gs_3$shape ,
+  kde_rate=d_hr_gs_3$rate ,
+  kde_scale=d_hr_gs_3$scale 
+)
+
+
 
 min(d_mei_hr_data)
 which(d_mei_hr_data$mei)
@@ -284,7 +359,7 @@ fit_hr_mei_meas_er= stan( file = file_name,
                     seed=3169
 )
 precis(fit_hr_mei_meas_er , depth=2 , c("sigma_g"))
-precis(fit_hr, depth=2 , pars=c("sigma_g"))
+#precis(fit_hr, depth=2 , pars=c("sigma_g"))
 
 file_name <- 'stan_code/hr_mei_gs_meas_er.stan'
 fit_hr_mei_gs_meas_er= stan( file = file_name,
@@ -300,6 +375,35 @@ fit_hr_mei_gs_meas_er= stan( file = file_name,
 precis(fit_hr_mei_gs_meas_er , depth=2 , c("v_mu" , "sigma_g"))
 precis(fit_hr_mei_gs_meas_er , depth=2 , c("v_mu" , "sigma_g"))
 precis(fit_hr_mei_gs_meas_er , depth=3 )
+
+#6 mos shift
+file_name <- 'stan_code/hr_mei_meas_er.stan'
+fit_hr_mei_meas_er_6mosshift= stan( file = file_name,
+                          data = list_area_3 ,
+                          iter = 4000,
+                          chains=4,
+                          cores=4,
+                          control=list(adapt_delta=0.99) ,
+                          refresh=250,
+                          init=0,
+                          seed=3169
+)
+precis(fit_hr_mei_meas_er_6mosshift , depth=2 , c("sigma_g"))
+precis(fit_hr_mei_meas_er_6mosshift , depth=2 , c("v_mu","sigma_g"))
+
+file_name <- 'stan_code/hr_mei_gs_meas_er.stan'
+fit_hr_mei_gs_meas_er_6mosshift= stan( file = file_name,
+                             data = list_area_3 ,
+                             iter = 4000,
+                             chains=4,
+                             cores=4,
+                             control=list(adapt_delta=0.99) ,
+                             refresh=250,
+                             init=0,
+                             seed=169
+)
+precis(fit_hr_mei_gs_meas_er_6mosshift , depth=2 , c("v_mu" , "sigma_g"))
+precis(fit_hr_mei_gs_meas_er_6mosshift , depth=3 )
 
 
 
