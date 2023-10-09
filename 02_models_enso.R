@@ -129,7 +129,7 @@ fit_hr_mei_gs_meas_er= stan( file = file_name,
                           init=0,
                           seed=169
 )
-precis(fit_hr_mei_gs_meas_er , depth=2 , c("v_mu" , "sigma_g"))
+precis(fit_hr_mei_gs_meas_er , depth=2 , c("v_mu" ))
 precis(fit_hr_mei_gs_meas_er , depth=2 , c("v_mu" , "sigma_g"))
 precis(fit_hr_mei_gs_meas_er , depth=3 )
 
@@ -176,11 +176,12 @@ fit_seas_1= stan( file = file_name,
                                        init=0,
                                        seed=169
 )
-
+precis(fit_seas_1, depth=1 )
 precis(fit_seas_1, depth=3 , pars='v')
 precis(fit_seas_1, depth=3 , pars='Rho_g')
+dens(post$v_mu[,4])
+dens(rnorm(0,1,n=8000) , add=TRUE)
 precis(fit_seas_1, depth=3) 
-
 post <- extract.samples(fit_seas_1)
 str(post)
 
@@ -192,3 +193,16 @@ for(i in 1:24){
   points( d_mei_hr_data$mei[d_mei_hr_data$season_index==1 & d_mei_hr_data$year_index_mei==i] , rep(0,4) , col="brown")
   points( d_mei_hr_data$mei[d_mei_hr_data$season_index==2 & d_mei_hr_data$year_index_mei==i] , rep(0,8) , col="green")
 }
+file_name <- 'stan_code/hr_mei_meas_er_seas_big.stan' 
+fit_seas_2= stan( file = file_name,
+                  data = list_area_seas ,
+                  iter = 4000,
+                  chains=4,
+                  cores=4,
+                  control=list(adapt_delta=0.99) ,
+                  refresh=250,
+                  init=0,
+                  seed=169
+)
+
+precis(fit_seas_2, depth=1) 

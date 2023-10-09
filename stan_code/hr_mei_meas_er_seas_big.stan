@@ -15,6 +15,7 @@ data{
   array[N] int group_index;
   array[N] int wet;
   array[N] int season_index;
+  vector[N] group_size_std;
 }
 
 parameters{
@@ -24,19 +25,20 @@ parameters{
   matrix[N_years,2] am; //mein mei per year
   matrix[N_years,2] am_pred; // marginailized posterior predictions of MEI
   // monkey parameters
-  matrix[4,N_groups] z_g;
+  matrix[5,N_groups] z_g;
   real a;
   real bm;
   real bw;
   real bwXm;
-  cholesky_factor_corr[4] L_Rho_g;
-  vector<lower=0>[4] sigma_g;
+  real bg;
+  cholesky_factor_corr[5] L_Rho_g;
+  vector<lower=0>[5] sigma_g;
   real<lower=0> k;
   vector<lower=0>[N] hr_area_true; //estimated shape and range
 }
 
 transformed parameters{
-  matrix[N_groups,4] v;
+  matrix[N_groups,5] v;
   v = (diag_pre_multiply(sigma_g, L_Rho_g) * z_g)';
 }
 
@@ -72,7 +74,7 @@ for (i in 1:N_years) {
   bw ~ normal( 0 , 1 );
   bm ~ normal( 0 , 1 );
   bwXm ~ normal( 0 , 1 );
-
+  bg ~ normal( 0 , 1 );
   to_vector( z_g ) ~ normal( 0 , 1 );
 
   for ( i in 1:N ) {
@@ -84,14 +86,15 @@ for (i in 1:N_years) {
     for ( i in 1:N ) {
       lambda[i] = a + v[group_index[i],1] + (bw + v[group_index[i],2])*wet[i] 
       + (bm + v[group_index[i],3])*am[ year_index[i] , season_index[i] ] 
-      + (bwXm + v[group_index[i],4]) * wet[i] * am[year_index[i] , season_index[i] ];
+      + (bwXm + v[group_index[i],4]) * wet[i] * am[year_index[i] , season_index[i] ]
+      + (bg + v[group_index[i],5]) * group_size_std[i];
       lambda[i] = exp(lambda[i]);
   }
   hr_area_obs ~ gamma( lambda/k , 1/k );
 }
 
 generated quantities{
-  matrix[4,4] Rho_g;
+  matrix[5,5] Rho_g;
   Rho_g = multiply_lower_tri_self_transpose(L_Rho_g);
 }
 
