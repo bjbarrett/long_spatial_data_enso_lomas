@@ -3,12 +3,36 @@ library(janitor)
 library(dplyr)
 library(tidyverse)
 
+elcol_pal <- rev(brewer.pal(3 , "RdYlBu"))
+group_pal <- brewer.pal(11 , "Spectral")
+
 ##group size
 d_hr_gs <- read.csv("data/df_slpHRarea_group_size.csv")
 str(d_hr_gs)
 d_hr_gs$group_index <- as.integer(as.factor(d_hr_gs$group))
 d_hr_gs$group_size_std <- standardize(d_hr_gs$group_size)
 
+
+#get enso data
+mei <- clean_names(download_mei())
+d_mei <- mei[mei$year >= min(d_hr_gs$year) - 1,]
+d_mei <- d_mei[complete.cases(d_mei),]
+plot(mei~date , data=d_mei)
+#combie data frames, will do posterior across time series later
+str(d_hr_gs)
+str(d_mei)
+elcol_pal <- rev(brewer.pal(3 , "RdYlBu"))
+group_pal <- brewer.pal(11 , "Spectral")
+
+d_mei$phase_index <- as.integer(d_mei$phase)
+plot(d_mei$mei~d_mei$date , col=elcol_pal[d_mei$phase_index] , pch="x" , cex=0.5)
+mei_spl <- with(d_mei, smooth.spline(date, mei))
+lines(mei_spl, col = "grey3")
+abline(v=d_mei$date[1:33] , col="grey")
+d_hr_gs_2 <- merge(d_hr_gs, d_mei , by="year")
+d_hr_gs_2 <- d_hr_gs_2[d_hr_gs_2$month=="JJ",]
+min(d_mei$year)
+d_mei$year_index_overall <- d_mei$year - 1989
 
 
 #all groups
@@ -143,26 +167,6 @@ d_mei_hr_data <- d_mei[is.element(d_mei$year , d_hr_gs_3$year),]
 # d_mei_hr_data_6mosshift <- mei_12m_6shift[is.element(mei_12m_6shift$year_analyze , d_hr_gs_3$year),]
 # d_mei_hr_data_12mosshift <- mei_12m_12shift[is.element(mei_12m_12shift$year_analyze , d_hr_gs_3$year),]
 
-#get enso data
-mei <- clean_names(download_mei())
-d_mei <- mei[mei$year >= min(d_hr_gs$year) - 1,]
-d_mei <- d_mei[complete.cases(d_mei),]
-plot(mei~date , data=d_mei)
-#combie data frames, will do posterior across time series later
-str(d_hr_gs)
-str(d_mei)
-elcol_pal <- rev(brewer.pal(3 , "RdYlBu"))
-group_pal <- brewer.pal(11 , "Spectral")
-
-d_mei$phase_index <- as.integer(d_mei$phase)
-plot(d_mei$mei~d_mei$date , col=elcol_pal[d_mei$phase_index] , pch="x" , cex=0.5)
-mei_spl <- with(d_mei, smooth.spline(date, mei))
-lines(mei_spl, col = "grey3")
-abline(v=d_mei$date[1:33] , col="grey")
-d_hr_gs_2 <- merge(d_hr_gs, d_mei , by="year")
-d_hr_gs_2 <- d_hr_gs_2[d_hr_gs_2$month=="JJ",]
-min(d_mei$year)
-d_mei$year_index_overall <- d_mei$year - 1989
 
 
 
@@ -276,6 +280,8 @@ d_hr_seas$scale <- d_hr_seas$mean_area/d_hr_seas$DOF
 d_hr_seas$rate <- d_hr_seas$DOF/d_hr_seas$mean_area
 d_hr_seas$shape <- d_hr_seas$DOF
 
+d_mei_hr_data$year_index_mei <- as.integer(as.factor(d_mei_hr_data$year))
+
 list_area_seas <- list(
   hr_area_mean=d_hr_seas$mean_area ,
   group_index=d_hr_seas$group_index ,
@@ -286,6 +292,7 @@ list_area_seas <- list(
   year_mei=d_mei_hr_data$year ,
   year_index_mei=as.integer(as.factor(d_mei_hr_data$year)),
   N_years=length(unique(d_mei_hr_data$year)),
+  season_index_mei=d_mei_hr_data$season_index ,
   season_index=d_hr_seas$season_index ,
   N=nrow(d_hr_seas) ,
   N_groups=length(unique(d_hr_seas$group_index)) ,
