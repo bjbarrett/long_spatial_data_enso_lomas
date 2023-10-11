@@ -206,3 +206,20 @@ fit_seas_2= stan( file = file_name,
 )
 
 precis(fit_seas_2, depth=1) 
+
+
+
+###home range only
+file_name <- 'stan_code/hr_gs_meas_er.stan'
+fit_hr_gs_meas_er= stan( file = file_name,
+                             data = list_area_2 ,
+                             iter = 4000,
+                             chains=4,
+                             cores=4,
+                             control=list(adapt_delta=0.99) ,
+                             refresh=250,
+                             init=0,
+                             seed=169
+)
+
+precis(fit_hr_gs_meas_er, depth=2 , pars=c("v_mu" , "sigma_g" , "k") )

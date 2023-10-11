@@ -2,6 +2,7 @@ library(rethinking)
 library(janitor)
 library(dplyr)
 library(tidyverse)
+library(RColorBrewer)
 
 elcol_pal <- rev(brewer.pal(3 , "RdYlBu"))
 group_pal <- brewer.pal(11 , "Spectral")
@@ -192,7 +193,8 @@ list_area_2 <- list(
   hr_area_rate=d_hr_gs_3$rate ,
   hr_area_shape=d_hr_gs_3$shape ,
   group_index=d_hr_gs_3$group_index ,
-  group_size=d_hr_gs_3$group_size_std ,
+  group_size=d_hr_gs_3$group_size ,
+  group_size_std=d_hr_gs_3$group_size_std ,
   year_index=d_hr_gs_3$year_index,
   mei=d_mei_hr_data$mei ,
   year_mei=d_mei_hr_data$year ,
@@ -285,7 +287,7 @@ d_mei_hr_data$year_index_mei <- as.integer(as.factor(d_mei_hr_data$year))
 list_area_seas <- list(
   hr_area_mean=d_hr_seas$mean_area ,
   group_index=d_hr_seas$group_index ,
-  group_size=d_hr_seas$group_size_std ,
+  group_size=d_hr_seas$group_size ,
   year_index=d_hr_seas$year_index,
   year=as.integer(d_hr_seas$year),
   # mei=d_mei_hr_data$mei ,

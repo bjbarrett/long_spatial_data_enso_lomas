@@ -1,4 +1,3 @@
-// pick up here later
 data{
   // mei data
   vector[96] mei_dry;

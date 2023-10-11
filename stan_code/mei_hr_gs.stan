@@ -8,7 +8,7 @@ data{
   int N;
   int N_groups;
   array[N] int year_index;
-  vector[N] group_size;
+  vector[N] group_size_std;
   vector[N] hr_area_mean;
   array[N] int group_index;
 }
@@ -55,7 +55,7 @@ v_mu[2] ~ normal( 0 , 1 );
 v_mu[3] ~ normal( 0 , 1 );
 to_vector( z_g ) ~ normal( 0 , 1 );
 for ( i in 1:N ) {
-    lambda[i] = v_mu[1] + v[group_index[i], 1] + (v_mu[2] + v[group_index[i], 2]) * am_pred[year_index[i]] + (v_mu[3] + v[group_index[i], 3]) * group_size[i];
+    lambda[i] = v_mu[1] + v[group_index[i], 1] + (v_mu[2] + v[group_index[i], 2]) * am_pred[year_index[i]] + (v_mu[3] + v[group_index[i], 3]) * group_size_std[i];
     lambda[i] = exp(lambda[i]);
 }
 
