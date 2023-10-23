@@ -1,13 +1,6 @@
-library(rsoi)
-library(janitor)
-library(RColorBrewer)
-library(lubridate)
-library(ctmm)
-library(tidyverse)
-
-
-
-
+library(rethinking)
+library('dagitty')
+set_ulam_cmdstan(TRUE)
 ###visually inspect eate shape
 for(i in 10:20){
   plot(density(rgamma(10000,shape=d_akde$shape[[i]], rate=d_akde$rate[[i]] ) , xlim=c(0,10)) , main="blah" )
@@ -193,6 +186,7 @@ for(i in 1:24){
   points( d_mei_hr_data$mei[d_mei_hr_data$season_index==1 & d_mei_hr_data$year_index_mei==i] , rep(0,4) , col="brown")
   points( d_mei_hr_data$mei[d_mei_hr_data$season_index==2 & d_mei_hr_data$year_index_mei==i] , rep(0,8) , col="green")
 }
+
 file_name <- 'stan_code/hr_mei_meas_er_seas_big.stan' 
 fit_seas_2= stan( file = file_name,
                   data = list_area_seas ,
@@ -223,3 +217,79 @@ fit_hr_gs_meas_er= stan( file = file_name,
 )
 
 precis(fit_hr_gs_meas_er, depth=2 , pars=c("v_mu" , "sigma_g" , "k") )
+
+### overlap
+dag1 <-
+  dagitty('dag {
+   mei -> ra
+   ra -> hra
+   ra -> nmono
+   ra -> ov
+   nmono -> hra
+   hra -> ov
+   nmono -> ov
+   cent -> ov
+   ra -> cent
+   mei [exposure]
+   ov [outcome]
+   ra [unobserved]
+   mei -> cent
+  }')
+
+##centroid distance????
+plot(dag1)
+adjustmentSets( dag1 , exposure="mei" , outcome="ov" )
+print( impliedConditionalIndependencies( dag1 ) )
+
+file_name <- 'stan_code/mei_ov.stan'
+fit_ov= stan( file = file_name,
+                         data = list_ov ,
+                         iter = 2000,
+                         chains=4,
+                         cores=4,
+                         control=list(adapt_delta=0.99) ,
+                         refresh=250,
+                         seed=6334,
+                         init=0
+)
+
+precis(fit_ov , depth=2)
+precis(fit_ov , depth=2 , pars="d")
+
+post <- extract.samples(fit_ov)
+str(post)
+dens(logistic(post$d[,1]))
+dens(logistic(post$d[,5]))
+
+file_name <- 'stan_code/mei_ov_mei.stan' #stupid name
+fit_ov_mei= stan( file = file_name,
+              data = list_ov ,
+              iter = 4000,
+              chains=4,
+              cores=4,
+              control=list(adapt_delta=0.999) ,
+              refresh=250,
+              seed=2134,
+              init=0.01
+)
+
+precis(fit_ov_mei, depth=3 , pars='g')
+precis(fit_ov_mei, depth=3 , pars='am_pred')
+precis(fit_ov_mei, depth=3 , pars='bm')
+precis(fit_ov_mei, depth=1)
+post <- extract.samples(fit_ov_mei)
+str(post)
+dens(post$g[,3,1])
+file_name <- 'stan_code/test_mei.stan' #stupid name
+fit_mei_teat= stan( file = file_name,
+                  data = list_ov ,
+                  iter = 4000,
+                  chains=4,
+                  cores=4,
+                  control=list(adapt_delta=0.99) ,
+                  refresh=250,
+                  seed=6334,
+                  init=0.01
+)
+
+precis(fit_mei_teat, depth=2)

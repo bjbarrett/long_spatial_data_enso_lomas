@@ -1,7 +1,8 @@
 data{
   // mei data
-  vector[288] mei;
-  array[288] int year_index_mei;
+  int N_mei;
+  vector[N_mei] mei;
+  array[N_mei] int year_index_mei;
   int N_years;
 
   // monkey data

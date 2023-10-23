@@ -3,6 +3,9 @@ library(janitor)
 library(dplyr)
 library(tidyverse)
 library(RColorBrewer)
+library(rsoi)
+library(ctmm)
+library(stringr)
 
 elcol_pal <- rev(brewer.pal(3 , "RdYlBu"))
 group_pal <- brewer.pal(11 , "Spectral")
@@ -182,7 +185,7 @@ list_area <- list(
   sd_annual_mei=d_hr_gs_3$sd_annual_mei ,
   group_index=d_hr_gs_3$group_index ,
   group_size=d_hr_gs_3$group_size_std ,
-  year_index=d_hr_gs_3$year_index 
+  year_index=d_hr_gs_3$year_index
 )
 
 list_area_2 <- list(
@@ -208,7 +211,9 @@ list_area_2 <- list(
   sd_annual_mei=d_hr_gs_3$sd_annual_mei ,
   kde_shape=d_hr_gs_3$shape ,
   kde_rate=d_hr_gs_3$rate ,
-  kde_scale=d_hr_gs_3$scale 
+  kde_scale=d_hr_gs_3$scale ,
+  N_mei = nrow(d_mei_hr_data)
+  
 )
 
 # list_area_3 <- list(
@@ -311,3 +316,55 @@ list_area_seas <- list(
   group_size_std=d_hr_seas$group_size_std
 )
 str(list_area_seas)
+
+
+###overlap
+d_ov <- read.csv("data/df_slpHR_dyadic_overlap.csv")
+str(d_ov)
+d_ov$year1 <- as.integer(str_sub(d_ov$p1,4,7))
+d_ov$year2 <- as.integer(str_sub(d_ov$p2,4,7))
+d_ov$group1 <- str_sub(d_ov$p1,1,2)
+d_ov$group2 <- str_sub(d_ov$p2,1,2)
+
+d_ov2 <- d_ov[which(d_ov$year1==d_ov$year2),]
+d_ov2 <- d_ov2[which(d_ov2$group1!=d_ov2$group2),]
+d_ov2 <- d_ov2[d_ov2$overlap_uds>0,] #drop zeros for now
+sort(unique(d_ov2$group1))==sort(unique(d_ov2$group2))##if true we good for model
+sort(unique(d_ov2$group1))
+sort(unique(d_ov2$group2))
+#get sp into g1 and aa into g2
+criteria <- which(d_ov2$group1=="aa" & d_ov2$group2=="sp")
+d_ov2$group1[criteria[1:2]] <- "sp"
+d_ov2$group2[criteria[1:2]] <- "aa"
+sort(unique(d_ov2$group1))==sort(unique(d_ov2$group2))##if true we good for model
+sort(unique(d_ov2$group1))
+sort(unique(d_ov2$group2))
+
+d_ov2$g1_index <- as.integer(as.factor(d_ov2$group1))
+d_ov2$g2_index <- as.integer(as.factor(d_ov2$group2))
+d_ov2$year_index <- as.integer(as.factor(d_ov2$year1))
+sort(unique(d_ov2$year1))==sort(unique(d_ov2$year2)) #should be true too
+d_ov2$dyad <- apply(d_ov2[,7:8], 1, function(s) paste0(sort(s), collapse='')) #get dyad level indicators
+d_ov2$d_index <- as.integer(as.factor(d_ov2$dyad))
+d_ov2$y
+
+
+d_mei_ov_data <- d_mei_hr_data[which(d_mei_hr_data$year %in% unique(d_ov2$year1)),]
+d_mei_ov_data$year_index_mei <- as.integer(as.factor(d_mei_ov_data$year))
+#note that a zero augmented beta is the way to go, but i will drop zeros and do beta for now
+list_ov <- list(
+  N=nrow(d_ov2) ,
+  N_groups=length(unique(d_ov2$g1_index)) ,
+  N_dyads=length(unique(d_ov2$d_index)) ,
+  overlap_uds = d_ov2$overlap_uds ,
+  g1_index=d_ov2$g1_index ,
+  g2_index=d_ov2$g2_index ,
+  d_index=d_ov2$d_index,
+  year_index=d_ov2$year_index,
+  year=d_ov2$year1,
+  mei=d_mei_ov_data$mei ,
+  year_mei=d_mei_ov_data$year ,
+  year_index_mei=d_mei_ov_data$year_index_mei,
+  N_years=length(unique(d_mei_ov_data$year)) ,
+  N_mei = nrow(d_mei_ov_data)
+)
