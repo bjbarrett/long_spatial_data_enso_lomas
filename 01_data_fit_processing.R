@@ -49,16 +49,22 @@ for(i in c(1:3,5:11)){
   lines(grp_spl, col = group_pal[i])
 }
 
+pdf(file="plots/all_da_groups_raw.pdf" , width = 8 , height=11)
+par(mfrow = c(11, 1))
+par(mar = rep(1,4) +0.1, oma = rep(0,4) +0.1)
 #per group plot
 for(i in 1:11){
   plot(d_mei$mei~d_mei$date , col=elcol_pal[d_mei$phase_index] , pch="x" ,
        cex=0.7 , ylim=c(-2.5,2.5) , main=min(d_hr_gs_2$group[d_hr_gs_2$group_index==i] ) )
-  lines(mei_spl, col = "grey3")
+  #lines(mei_spl, col = "grey3")
   points( d_hr_gs_2$date[d_hr_gs_2$group_index==i] , 
           standardize(d_hr_gs_2$hr_area_mean[d_hr_gs_2$group_index==i]) , 
           col=group_pal[i] , pch=19)
-  abline(v=d_mei$date[1:33] , col="grey")
+  abline(v=d_mei$date[i+i*11] , col="grey")
+  for (i in 1:33) abline(v=d_mei$date[i+i*11] , col="grey")
+  
 }
+dev.off()
 
 ###mei consolidate
 str(d_hr_gs_2)
@@ -202,6 +208,7 @@ list_area_2 <- list(
   mei=d_mei_hr_data$mei ,
   year_mei=d_mei_hr_data$year ,
   year_index_mei=as.integer(as.factor(d_mei_hr_data$year)),
+  phase_index=d_mei_hr_data$phase_index,
   N_years=length(unique(d_mei_hr_data$year)),
   N=nrow(d_hr_gs_3) ,
   N_groups=length(unique(d_hr_gs_3$group_index)) ,
@@ -368,3 +375,10 @@ list_ov <- list(
   N_years=length(unique(d_mei_ov_data$year)) ,
   N_mei = nrow(d_mei_ov_data)
 )
+
+
+### riparian data
+drip <- read.csv("data/df_seasonal_riparian.csv")
+str(drip)
+drip$group_index <- as.integer(as.factor(drip$group))
+drip$group_size_std <- standardize(drip$group_size)

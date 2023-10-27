@@ -25,12 +25,15 @@ fit= stan( file = file_name,
 
 precis(fit , depth=2)
 post <- extract.samples(fit)
+pdf(file="plots/enso_post.pdf" , width = 10 , height=7)
+par(mar = c(2.5, 2.5, 0, 0), oma = c(1, 1, 1, 1))
+par(mfrow = c(6, 4))
 for(i in 1:24){
   dens(post$am[,i] , xlim=c(-3,3))
   dens(post$am_pred[,i], add=TRUE , lty=2)
   points(list_area_2$mei[list_area_2$year_index_mei==i] , rep(0,12), col="red")
 }
-
+dev.off()
 file_name <- 'stan_code/mei_hr.stan'
 fit_hr= stan( file = file_name,
             data = list_area_2 ,
@@ -73,10 +76,10 @@ fit_hr_post= stan( file = file_name,
                  seed=813
 )
 precis(fit_hr_post , depth=2)
-par(mfrow=c(5,6), oma=c(0,0,0,0), mar=c(0,0,0,0) )
+par(mfrow=c(12,12), oma=c(0,0,0,0), mar=c(0,0,0,0) )
 post <- extract.samples(fit_hr_post)
 for (i in 1:130){
-  dens(post$hr_area_true[,i] , xlim=c(0,6) ,col="red")
+  dens(post$hr_area_true[,i] , xlim=c(0,6) ,col="red" , xaxt='n')
   dens(rgamma(2000,shape=d_akde$shape[[i]], rate=d_akde$rate[[i]] ) , add=TRUE )
   lines(density(rgamma(2000,shape=d_akde$shape[[i]], scale=d_akde$scale[[i]] ) ) , lty=2 )
   points( d_akde$area[i] , 0.1 )
