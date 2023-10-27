@@ -382,3 +382,26 @@ drip <- read.csv("data/df_seasonal_riparian.csv")
 str(drip)
 drip$group_index <- as.integer(as.factor(drip$group))
 drip$group_size_std <- standardize(drip$group_size)
+
+d_mei_hr_data$year_index_mei <- as.integer(as.factor(d_mei_hr_data$year))
+drip$season_index <- as.integer(as.factor(drip$season))
+drip$year_index <- as.integer(as.factor(drip$year))
+
+list_rip <- list(
+  hr_area=round(drip$hr_area),
+  intersect_area=round(drip$intersect_area) ,
+  group_index=drip$group_index ,
+  group_size=drip$group_size ,
+  year_index=drip$year_index,
+  year=as.integer(drip$year),
+  mei_dry=d_mei_hr_data$mei[d_mei_hr_data$season_index==1] ,
+  mei_wet=d_mei_hr_data$mei[d_mei_hr_data$season_index==2] ,
+  year_index_mei_dry=d_mei_hr_data$year_index_mei[d_mei_hr_data$season_index==1],
+  year_index_mei_wet=d_mei_hr_data$year_index_mei[d_mei_hr_data$season_index==2],
+  N_years=length(unique(d_mei_hr_data$year)),
+  season_index=drip$season_index ,
+  N=nrow(drip) ,
+  N_groups=length(unique(drip$group_index)) ,
+  wet=drip$season_index - 1,
+  group_size_std=drip$group_size_std
+)

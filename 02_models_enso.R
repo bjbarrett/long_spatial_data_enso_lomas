@@ -296,3 +296,19 @@ fit_mei_teat= stan( file = file_name,
 )
 
 precis(fit_mei_teat, depth=2)
+
+##fit riparian
+
+file_name <- 'stan_code/rip_mei_meas_er_seas.stan' #stupid name
+fit_mei_rip= stan( file = file_name,
+                    data = list_rip ,
+                    iter = 2000,
+                    chains=4,
+                    cores=4,
+                    control=list(adapt_delta=0.99) ,
+                    refresh=250,
+                    seed=4739
+                    
+)
+
+precis(fit_mei_rip, depth=2)

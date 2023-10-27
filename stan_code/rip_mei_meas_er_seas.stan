@@ -8,8 +8,8 @@ data{
   int N_years;
   // monkey data
   int N;
-  vector[N] hr_area; //shape of each home range estimated by ctmm
-  vector[N] intersect_area; //rate of each home range estimated by ctmm
+  array [N] int hr_area; //shape of each home range estimated by ctmm
+  array [N] int intersect_area; //rate of each home range estimated by ctmm
   int N_groups;
   array[N] int year_index;
   array[N] int group_index;
@@ -31,8 +31,6 @@ parameters{
   real bwXm;
   cholesky_factor_corr[4] L_Rho_g;
   vector<lower=0>[4] sigma_g;
-  real<lower=0> k;
-  vector<lower=0>[N] hr_area_true; //estimated shape and range
 }
 
 transformed parameters{
@@ -63,34 +61,26 @@ for (i in 1:N_years) {
      am_pred[i,2] ~ normal( am[i,2] , sigma_w ) ;
 }
 
-  vector[N] lambda;
-  vector[N] hr_area_obs; //storage value for posterior of home ranges
-  k ~ exponential(1); // prior on scale
+  vector[N] p;
   sigma_g ~ exponential( 1 );
   L_Rho_g ~ lkj_corr_cholesky( 3 );
-  a ~ normal( 1 , 0.8 );
+  a ~ normal( 0 , 1 );
   bw ~ normal( 0 , 1 );
   bm ~ normal( 0 , 1 );
   bwXm ~ normal( 0 , 1 );
 
   to_vector( z_g ) ~ normal( 0 , 1 );
 
-  for ( i in 1:N ) {
-      hr_area_true[i] ~ gamma( kde_shape[i] , kde_rate[i]); // estimate posteriors of home range for each observation
-  }
-
-  hr_area_obs=hr_area_true; // store posterior as something else to make outcomes
-
     for ( i in 1:N ) {
-      lambda[i] = a + v[group_index[i],1] + (bw + v[group_index[i],2])*wet[i] 
+      p[i] = a + v[group_index[i],1] + (bw + v[group_index[i],2])*wet[i] 
       + (bm + v[group_index[i],3])*am[ year_index[i] , season_index[i] ] 
       + (bwXm + v[group_index[i],4]) * wet[i] * am[year_index[i] , season_index[i] ];
-      lambda[i] = exp(lambda[i]);
   }
-  hr_area_obs ~ gamma( lambda/k , 1/k );
+      intersect_area ~ binomial_logit( hr_area , p );
 }
 
 generated quantities{
   matrix[4,4] Rho_g;
   Rho_g = multiply_lower_tri_self_transpose(L_Rho_g);
 }
+
