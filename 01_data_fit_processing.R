@@ -387,9 +387,15 @@ d_mei_hr_data$year_index_mei <- as.integer(as.factor(d_mei_hr_data$year))
 drip$season_index <- as.integer(as.factor(drip$season))
 drip$year_index <- as.integer(as.factor(drip$year))
 
+drip$mei_sample_mean <- 0
+for(i in 1:nrow(drip)){
+ drip$mei_sample_mean[i] <- mean(d_mei_hr_data$mei[d_mei_hr_data$season==drip$season[i] & d_mei_hr_data$year==drip$year[i]])
+}
+
 list_rip <- list(
   hr_area=round(drip$hr_area),
   intersect_area=round(drip$intersect_area) ,
+  prop_river=drip$prop_river ,
   group_index=drip$group_index ,
   group_size=drip$group_size ,
   year_index=drip$year_index,
@@ -404,4 +410,5 @@ list_rip <- list(
   N_groups=length(unique(drip$group_index)) ,
   wet=drip$season_index - 1,
   group_size_std=drip$group_size_std
+
 )

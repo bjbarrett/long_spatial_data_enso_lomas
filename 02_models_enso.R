@@ -175,7 +175,7 @@ fit_seas_1= stan( file = file_name,
 precis(fit_seas_1, depth=1 )
 precis(fit_seas_1, depth=3 , pars='v')
 precis(fit_seas_1, depth=3 , pars='Rho_g')
-dens(post$v_mu[,4])
+#dens(post$v_mu[,4])
 dens(rnorm(0,1,n=8000) , add=TRUE)
 precis(fit_seas_1, depth=3) 
 post <- extract.samples(fit_seas_1)
@@ -312,3 +312,22 @@ fit_mei_rip= stan( file = file_name,
 )
 
 precis(fit_mei_rip, depth=2)
+
+
+file_name <- 'stan_code/rip_mei_gs_meas_er_seas.stan' #stupid name
+fit_mei_gs_rip= stan( file = file_name,
+                   data = list_rip ,
+                   iter = 2000,
+                   chains=4,
+                   cores=4,
+                   control=list(adapt_delta=0.99) ,
+                   refresh=250,
+                   seed=19783
+                   
+)
+
+precis(fit_mei_gs_rip, depth=2)
+precis(fit_mei_gs_rip, depth=3 , pars="v")
+
+precis(fit_mei_gs_rip, pars="Rho_g" , depth=3)
+post <- extract.samples(fit_mei_gs_rip)
