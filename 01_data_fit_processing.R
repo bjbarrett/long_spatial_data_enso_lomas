@@ -2,6 +2,13 @@ library(rethinking)
 library(janitor)
 library(dplyr)
 library(tidyverse)
+library(RColorBrewer)
+library(rsoi)
+library(ctmm)
+library(stringr)
+
+elcol_pal <- rev(brewer.pal(3 , "RdYlBu"))
+group_pal <- brewer.pal(11 , "Spectral")
 
 ##group size
 d_hr_gs <- read.csv("data/df_slpHRarea_group_size.csv")
@@ -9,158 +16,402 @@ str(d_hr_gs)
 d_hr_gs$group_index <- as.integer(as.factor(d_hr_gs$group))
 d_hr_gs$group_size_std <- standardize(d_hr_gs$group_size)
 
-##home range overlap########
-d_hr_ov <- read.csv("data/df_slpHR_dyadic_overlap.csv")
-str(d_hr_ov)
-d_hr_ov <- d_hr_ov[d_hr_ov$overlap_uds>0,]
 
-# it looks like there are reps where groups are compared to themselves
-# extract years and group IDs
-d_hr_ov$g1 <- substr(d_hr_ov$p1, 1, 2)
-d_hr_ov$g2 <- substr(d_hr_ov$p2, 1, 2)
-d_hr_ov$y1 <- substr(d_hr_ov$p1, 4, 7)
-d_hr_ov$y2 <- substr(d_hr_ov$p2, 4, 7)
+#get enso data
+mei <- clean_names(download_mei())
+d_mei <- mei[mei$year >= min(d_hr_gs$year) - 1,]
+d_mei <- d_mei[complete.cases(d_mei),]
+plot(mei~date , data=d_mei)
+#combie data frames, will do posterior across time series later
+str(d_hr_gs)
+str(d_mei)
+elcol_pal <- rev(brewer.pal(3 , "RdYlBu"))
+group_pal <- brewer.pal(11 , "Spectral")
 
-#drop dyads where years do not match
-# drop dyads where groups are identical
-
-d_hr_ov <- subset(d_hr_ov, d_hr_ov$y1 == d_hr_ov$y2 & d_hr_ov$g1!= d_hr_ov$g2 )
-#d_hr_gs$group_index <- as.integer(as.factor(d_hr_gs$group))
-
-##for this paremterization it is importatnt that each group is representaed at least once in g1 g2
-
-# sort(unique(d_hr_ov$g1))
-# sort(unique(d_hr_ov$g2))
-# sort(unique(d_hr_ov$g1))==sort(unique(d_hr_ov$g2))
-# goblin_fart <- which(d_hr_ov$g2=="sp" & d_hr_ov$g1=="aa")
-# d_hr_ov[goblin_fart[1],]$g2 <- "aa"
-# d_hr_ov[goblin_fart[1],]$g1<- "sp"
-# sort(unique(d_hr_ov$g1))==sort(unique(d_hr_ov$g2))
-
-# sp missing from g1, aa missing from g2
-#indexes for groups and dyads
-
-# d_hr_ov$g1_index <- as.integer(as.factor(d_hr_ov$g1))
-# d_hr_ov$g2_index <- as.integer(as.factor(d_hr_ov$g2))
-# d_hr_ov$y1_index <- as.integer(as.factor(d_hr_ov$y1))
-# d_hr_ov$y2_index <- as.integer(as.factor(d_hr_ov$y2))
-
-# d_hr_ov[d_hr_ov$g1=="ce",]
-# d_hr_ov[d_hr_ov$g1=="cu",]
-# d_hr_ov[d_hr_ov$g1=="di",]
-# 
-# d_hr_ov$dyad <- apply(d_hr_ov[,5:6], 1, function(s) paste0(sort(s), collapse=''))
-# d_hr_ov$dyad_index <- as.integer(as.factor(d_hr_ov$dyad))
-# sort(unique(d_hr_ov$dyad))
-# em <- factorial(11)/(factorial(2)*factorial(11-2)) #max possible dyad cobos
-# em > length(unique(d_hr_ov$dyad)) # should be true
-# 
-# str(d_hr_ov)
-# d_hr_gs_min <- d_hr_gs[,4:9]
-# joined_df <- left_join(d_hr_ov, d_hr_gs_min, by=dplyr::join_by(p1 == id))
+d_mei$phase_index <- as.integer(d_mei$phase)
+plot(d_mei$mei~d_mei$date , col=elcol_pal[d_mei$phase_index] , pch="x" , cex=0.5)
+mei_spl <- with(d_mei, smooth.spline(date, mei))
+lines(mei_spl, col = "grey3")
+abline(v=d_mei$date[1:33] , col="grey")
+d_hr_gs_2 <- merge(d_hr_gs, d_mei , by="year")
+d_hr_gs_2 <- d_hr_gs_2[d_hr_gs_2$month=="JJ",]
+min(d_mei$year)
+d_mei$year_index_overall <- d_mei$year - 1989
 
 
-# Make weights for competitive ability using overlaps ------------------------
-
-
-# pivot overlaps wider to make into weights for comp ability
-# first need to pivot longer so that every group year is represented in p1
-# this will create duplicate dyads 
-# but then when we pivot wider, every unique group_year will have a column for every other group
-d_weights <- d_hr_ov %>% # 
-  pivot_longer(cols = p1:p2,
-               names_to = "old_name",
-               values_to = "p1") %>%
-  mutate(p2 = ifelse(old_name == "p1", # create new p2 
-                     str_c(g2, y2, sep = "_"), # if old name was p1, then p2 is g2_y2
-                     str_c(g1, y1, sep = "_")), # if old name was p2, then p2 is g1_y1
-         g1 = str_sub(p1, 1, 2), #give new g1 and g2
-         g2 = str_sub(p2, 1, 2),
-         neighbor_name = p2) %>% 
-  group_by(g1) %>% 
-  mutate(neighbor = str_c("neighbor", # give ids to neighbors based on g2
-                          as.numeric(as.factor(g2)), # list neighbors numerically so there are no self comparisons
-                          #g2,
-                          sep = "_")) %>% 
-  ungroup() %>%
-  rename(id = p1,
-         weight = overlap_uds) %>% 
-  left_join(dplyr::select(d_hr_gs, id, group_size) %>% rename(neighbor_name = id), # merge group sizes of neighbors
-            by = "neighbor_name") %>%
-  arrange(id) %>% 
-  pivot_wider(id_cols = id, # pivot wider to get weights and group sizes of each neighbor
-              names_from = neighbor,
-              values_from = c(weight, group_size)) %>%
-  mutate(across(2:21, ~replace(., is.na(.), 0))) %>% # replace NAs with 0, all 0 overlaps and 0 group size will have no affect on weight
-  left_join(dplyr::select(d_hr_gs,id, group, year, group_size, group_size_std, group_index, hr_area_mean), 
-            by = "id") %>% 
-  mutate(weighted_mean_neighbor_comp = (weight_neighbor_1*group_size_neighbor_1 + 
-                            weight_neighbor_2*group_size_neighbor_2 +
-                            weight_neighbor_3*group_size_neighbor_3 +
-                            weight_neighbor_4*group_size_neighbor_4 + # calculate weighted mean
-                            weight_neighbor_5*group_size_neighbor_5 +
-                            weight_neighbor_6*group_size_neighbor_6 +
-                            weight_neighbor_7*group_size_neighbor_7 +
-                            weight_neighbor_8*group_size_neighbor_8 +
-                            weight_neighbor_9*group_size_neighbor_9 +
-                            weight_neighbor_10*group_size_neighbor_10)/10,
-         weighted_mean_neighbor_comp_std = standardize(weighted_mean_neighbor_comp)) %>% # standardize weighted mean
-  dplyr::select(c(id, group, group_index, 
-                  year, group_size, group_size_std, 
-                  hr_area_mean, weighted_mean_neighbor_comp,weighted_mean_neighbor_comp_std)) 
-
-# which segments are in home range data frame that are missing from weights
-d_hr_gs$id[!(d_hr_gs$id %in% weights$id)]
-
-# aa 1990-93 had no neighbors so not in dataframe
-# earlier years will be biased because did not have neighborig groups
-# also no intergroup data at least on GPS to know what percent of encounter came from what group
-# if we wanted to use encounters as weight instead
-
-#.......................................................
-
-
-# add group sizes by joining from home range area dataframe 
-# (also could use group size dataframe just added to repository)
-for(i in 15:19){
-  names(joined_df)[i] <- paste0(names(joined_df) , "1")[i]
+#all groups
+plot(d_mei$mei~d_mei$date , col=elcol_pal[d_mei$phase_index] , pch="x" , cex=0.7 , ylim=c(-2.5,2.5))
+lines(mei_spl, col = "grey3")
+points( d_hr_gs_2$date , standardize(d_hr_gs_2$hr_area_mean) , col=group_pal[d_hr_gs_2$group_index] , pch=19)
+abline(v=d_mei$date[1:33] , col="grey")
+for(i in c(1:3,5:11)){
+  grp_spl <- with(d_hr_gs_2[d_hr_gs_2$group_index==i,], smooth.spline(date, mei ,spar=.5))
+  lines(grp_spl, col = group_pal[i])
 }
-joined_df <- left_join(joined_df, d_hr_gs_min, by=join_by(p2 == id))
-for(i in 20:24){
-  names(joined_df)[i] <- paste0(names(joined_df) , "2")[i]
+
+pdf(file="plots/all_da_groups_raw.pdf" , width = 8 , height=11)
+par(mfrow = c(11, 1))
+par(mar = rep(1,4) +0.1, oma = rep(0,4) +0.1)
+#per group plot
+for(i in 1:11){
+  plot(d_mei$mei~d_mei$date , col=elcol_pal[d_mei$phase_index] , pch="x" ,
+       cex=0.7 , ylim=c(-2.5,2.5) , main=min(d_hr_gs_2$group[d_hr_gs_2$group_index==i] ) )
+  #lines(mei_spl, col = "grey3")
+  points( d_hr_gs_2$date[d_hr_gs_2$group_index==i] , 
+          standardize(d_hr_gs_2$hr_area_mean[d_hr_gs_2$group_index==i]) , 
+          col=group_pal[i] , pch=19)
+  abline(v=d_mei$date[i+i*11] , col="grey")
+  for (i in 1:33) abline(v=d_mei$date[i+i*11] , col="grey")
+  
 }
-str(joined_df)
-d_hr_ov <- joined_df
-d_hr_ov$group_size1_std <- standardize(d_hr_ov$group_size1)
-d_hr_ov$group_size2_std <- standardize(d_hr_ov$group_size2)
-d_hr_ov$hr_area_mean1_std <- standardize(d_hr_ov$hr_area_mean1)
-d_hr_ov$hr_area_mean2_std <- standardize(d_hr_ov$hr_area_mean2)
+dev.off()
 
-# add relative group sizes
-d_hr_ov$rel_group_size1 <- d_hr_ov$group_size1 - d_hr_ov$group_size2
-d_hr_ov$rel_group_size1_std <- standardize(d_hr_ov$rel_group_size1)
-d_hr_ov$rel_group_size2 <- d_hr_ov$group_size2 - d_hr_ov$group_size1
-d_hr_ov$rel_group_size2_std <- standardize(d_hr_ov$rel_group_size2)
+###mei consolidate
+str(d_hr_gs_2)
+mean_df <- aggregate(mei ~ year, d_mei, mean)
+names(mean_df)[2] <- "mean_annual_mei"
+max_df <- aggregate(mei ~ year, d_mei, max)
+names(max_df)[2] <- "max_annual_mei"
+min_df <- aggregate(mei ~ year, d_mei, min)
+names(min_df)[2] <- "min_annual_mei"
+sd_df <- aggregate(mei ~ year, d_mei, sd)
+names(sd_df)[2] <- "sd_annual_mei"
+## get akdes
+# get UD telemetry object
+UD <- readRDS("~/Downloads/slp_1990-2019_RSF_AKDEs.rds")
 
-##daily path length
-d_dpl <- read.csv("data/df_GPS_daily_path_length.csv")
-str(d_dpl)
-d_hr_dpl <- clean_names(d_dpl)
-str(d_dpl)
-d_dpl$year <-as.integer(substr(d_dpl$date, 1, 4))
-d_dpl$group_index <- as.integer(as.factor(d_dpl$group))
+# function to get summary information from AKDEs
+summarize_akde <- function(akde){
+  
+  summary <- summary(akde, units = FALSE) # makes the units fro all UDs the same (m2)
+  
+  tibble(id = akde@info$identity, 
+         DOF = summary$DOF[1],
+         low = (summary$CI[1])/1000000, # convert m2 to km2
+         area = (summary$CI[2])/1000000,
+         high = (summary$CI[3])/1000000)
+}
 
-# get group sizes by group_year
-annual_group_sizes <- read.csv("data/annual_group_sizes.csv") %>% # group size dataframe
-  mutate(id = str_c(group,year,sep = "_")) %>% 
-  dplyr::select(id, group_size) 
+# wrapper to stack area info into data frame
+make_df <- function(id){
+  map_dfr(id, summarize_akde) 
+}
 
-# give dpl dataframe group size column
-d_dpl_gs <- d_dpl %>% 
-  mutate(id = str_c(group, year, sep = "_")) %>% 
-  left_join(annual_group_sizes, by = "id") %>% 
-  dplyr::select(-id) %>% 
-  mutate(group_size_std = standardize(group_size),
-         dist.ML = dist.ML/1000) %>% # change dpl to km
-  rename(dpl_mean = dist.ML) %>% 
-  dplyr::select(group, dpl_mean, year, group_index, group_size, group_size_std)
+# apply functions to get data frame and calculate shape and rate
+d_akde <- make_df(UD) %>% 
+  mutate(scale = area/DOF,
+         rate=DOF/area , 
+         shape = DOF)
+str(d_akde)
+##compile bigger data frames
+
+d_hr_gs_3 <- merge(d_hr_gs, mean_df , by="year")
+d_hr_gs_3 <- merge(d_hr_gs_3, min_df , by="year")
+d_hr_gs_3 <- merge(d_hr_gs_3, max_df , by="year")
+d_hr_gs_3 <- merge(d_hr_gs_3, sd_df , by="year")
+d_hr_gs_3 <- merge(d_hr_gs_3, d_akde , by="id")
+
+d_hr_gs_3$year_index <- as.integer(as.factor(d_hr_gs_3$year))
+
+d_mei <- d_mei %>%
+  mutate(date = as.Date(date, "%Y-%m-%d")) %>%
+  arrange(date)
+d_mei$year_analyze <- NA
+
+min(d_mei$date[d_mei$year==1991])
+#make mei datasets
+pasta <- min(which(d_mei$year==1991))
+d_mei[pasta:(pasta+11),]
+mei_12m_same <- d_mei[pasta:(pasta+11),]
+for(swag in 1992:max(d_mei$year)){
+  shins <- min(which(d_mei$year==swag))
+  mei_12m_same <- rbind(mei_12m_same , d_mei[(shins-6):(shins+5),] )
+}
+mei_12m_same
+# 
+# #one year, shifted 6 months
+# pasta <- min(which(d_mei$year==1991))
+# mei_12m_6shift <- d_mei[(pasta-6):(pasta+5),]
+# mei_12m_6shift$year_index_overall <- 1
+# mei_12m_6shift$year_analyze <- 1991
+# #fuck with indexing
+# for(swag in 1992:max(d_mei$year)){
+#   shins <- min(which(d_mei$year==swag))
+#   mei_12m_6shift <- rbind(mei_12m_6shift, d_mei[(shins-6):(shins+5),] )
+#   meow <- nrow(mei_12m_6shift)
+#   mei_12m_6shift$year_index_overall[(meow-11):meow] <- swag-1990
+#   mei_12m_6shift$year_analyze[(meow-11):meow]  <- rep(swag,12)
+# }
+# mei_12m_6shift
+# 
+# #one year, shifted 12 months
+# pasta <- min(which(d_mei$year==1991))
+# mei_12m_12shift <- d_mei[(pasta-11):(pasta-1),]
+# mei_12m_12shift$year_index_overall <- 1
+# mei_12m_12shift$year_analyze <- 1991
+# #fuck with indexing
+# for(swag in 1992:max(d_mei$year)){
+#   shins <- min(which(d_mei$year==swag))
+#   mei_12m_12shift <- rbind(mei_12m_12shift, d_mei[(shins-11):(shins-1),] )
+#   meow <- nrow(mei_12m_12shift)
+#   mei_12m_12shift$year_index_overall[(meow-11):meow] <- swag-1990
+#   mei_12m_12shift$year_analyze[(meow-11):meow]  <- rep(swag,12)
+# }
+# mei_12m_12shift
+
+# we need timescales
+#same year
+#year shifted six months
+#two years
+
+# d_hr_ov$year <- d_hr_ov$y1
+# d_hr_ov_3 <-merge(d_hr_ov, mean_df , by="year")
+#add wet and dry season to mei, 1st 4 months of year is dry
+d_mei$season <- ifelse( month(d_mei$date) < 5 , "dry" , "wet" )
+d_mei$season_index <- as.integer(as.factor(d_mei$season))
+###for same year
+d_mei_hr_data <- d_mei[is.element(d_mei$year , d_hr_gs_3$year),]
+
+
+#for 1 year 6 mos shifted
+# d_mei_hr_data_6mosshift <- mei_12m_6shift[is.element(mei_12m_6shift$year_analyze , d_hr_gs_3$year),]
+# d_mei_hr_data_12mosshift <- mei_12m_12shift[is.element(mei_12m_12shift$year_analyze , d_hr_gs_3$year),]
+
+
+
+
+list_area <- list(
+  hr_area_mean=d_hr_gs_3$hr_area_mean ,
+  hr_area_high=d_hr_gs_3$hr_area_high ,
+  hr_area_low=d_hr_gs_3$hr_area_low ,
+  hr_area_sd=d_hr_gs_3$hr_area_sd ,
+  mean_annual_mei=d_hr_gs_3$mean_annual_mei ,
+  min_annual_mei=d_hr_gs_3$min_annual_mei ,
+  max_annual_mei=d_hr_gs_3$max_annual_mei ,
+  sd_annual_mei=d_hr_gs_3$sd_annual_mei ,
+  group_index=d_hr_gs_3$group_index ,
+  group_size=d_hr_gs_3$group_size_std ,
+  year_index=d_hr_gs_3$year_index
+)
+
+list_area_2 <- list(
+  hr_area_mean=d_hr_gs_3$hr_area_mean ,
+  hr_area_high=d_hr_gs_3$hr_area_high ,
+  hr_area_low=d_hr_gs_3$hr_area_low ,
+  hr_area_sd=d_hr_gs_3$hr_area_sd ,
+  hr_area_rate=d_hr_gs_3$rate ,
+  hr_area_shape=d_hr_gs_3$shape ,
+  group_index=d_hr_gs_3$group_index ,
+  group_size=d_hr_gs_3$group_size ,
+  group_size_std=d_hr_gs_3$group_size_std ,
+  year_index=d_hr_gs_3$year_index,
+  mei=d_mei_hr_data$mei ,
+  year_mei=d_mei_hr_data$year ,
+  year_index_mei=as.integer(as.factor(d_mei_hr_data$year)),
+  phase_index=d_mei_hr_data$phase_index,
+  N_years=length(unique(d_mei_hr_data$year)),
+  N=nrow(d_hr_gs_3) ,
+  N_groups=length(unique(d_hr_gs_3$group_index)) ,
+  mean_annual_mei=d_hr_gs_3$mean_annual_mei ,
+  min_annual_mei=d_hr_gs_3$min_annual_mei ,
+  max_annual_mei=d_hr_gs_3$max_annual_mei ,
+  sd_annual_mei=d_hr_gs_3$sd_annual_mei ,
+  kde_shape=d_hr_gs_3$shape ,
+  kde_rate=d_hr_gs_3$rate ,
+  kde_scale=d_hr_gs_3$scale ,
+  N_mei = nrow(d_mei_hr_data)
+  
+)
+
+# list_area_3 <- list(
+#   hr_area_mean=d_hr_gs_3$hr_area_mean ,
+#   hr_area_high=d_hr_gs_3$hr_area_high ,
+#   hr_area_low=d_hr_gs_3$hr_area_low ,
+#   hr_area_sd=d_hr_gs_3$hr_area_sd ,
+#   hr_area_rate=d_hr_gs_3$rate ,
+#   hr_area_shape=d_hr_gs_3$shape ,
+#   group_index=d_hr_gs_3$group_index ,
+#   group_size=d_hr_gs_3$group_size_std ,
+#   year_index=d_hr_gs_3$year_index,
+#   mei=d_mei_hr_data_6mosshift$mei ,
+#   year_mei=d_mei_hr_data_6mosshift$year_analyze ,
+#   year_index_mei=as.integer(as.factor(d_mei_hr_data_6mosshift$year_analyze)) ,
+#   N_years=length(unique(d_mei_hr_data_6mosshift$year_analyze)) ,
+#   N=nrow(d_hr_gs_3) ,
+#   N_groups=length(unique(d_hr_gs_3$group_index)) ,
+#   mean_annual_mei=d_hr_gs_3$mean_annual_mei ,
+#   min_annual_mei=d_hr_gs_3$min_annual_mei ,
+#   max_annual_mei=d_hr_gs_3$max_annual_mei ,
+#   sd_annual_mei=d_hr_gs_3$sd_annual_mei ,
+#   kde_shape=d_hr_gs_3$shape ,
+#   kde_rate=d_hr_gs_3$rate ,
+#   kde_scale=d_hr_gs_3$scale 
+# )
+# 
+# list_area_4 <- list(
+#   hr_area_mean=d_hr_gs_3$hr_area_mean ,
+#   hr_area_high=d_hr_gs_3$hr_area_high ,
+#   hr_area_low=d_hr_gs_3$hr_area_low ,
+#   hr_area_sd=d_hr_gs_3$hr_area_sd ,
+#   hr_area_rate=d_hr_gs_3$rate ,
+#   hr_area_shape=d_hr_gs_3$shape ,
+#   group_index=d_hr_gs_3$group_index ,
+#   group_size=d_hr_gs_3$group_size_std ,
+#   year_index=d_hr_gs_3$year_index,
+#   mei=d_mei_hr_data_12mosshift$mei ,
+#   year_mei=d_mei_hr_data_12mosshift$year_analyze ,
+#   year_index_mei=as.integer(as.factor(d_mei_hr_data_12mosshift$year_analyze)) ,
+#   N_years=length(unique(d_mei_hr_data_12mosshift$year_analyze)) ,
+#   N=nrow(d_hr_gs_3) ,
+#   N_groups=length(unique(d_hr_gs_3$group_index)) ,
+#   mean_annual_mei=d_hr_gs_3$mean_annual_mei ,
+#   min_annual_mei=d_hr_gs_3$min_annual_mei ,
+#   max_annual_mei=d_hr_gs_3$max_annual_mei ,
+#   sd_annual_mei=d_hr_gs_3$sd_annual_mei ,
+#   kde_shape=d_hr_gs_3$shape ,
+#   kde_rate=d_hr_gs_3$rate ,
+#   kde_scale=d_hr_gs_3$scale 
+# )
+
+#########READ IN SEASONAL DATA FRAME
+
+##extract important things from strings
+d_hr_seas <- read.csv("data/df_slpHRarea_seasonal_jan-apr_RSF_error.csv")
+d_hr_seas$group <- substr(d_hr_seas$id, start = 1, stop = 2)
+d_hr_seas$season <- substr(d_hr_seas$id, start = 4, stop = 6)
+d_hr_seas$year <- substr(d_hr_seas$id, start = 8, stop = 11)
+#integer dat jawn
+d_hr_seas$group_index <- as.integer(as.factor(d_hr_seas$group))
+d_hr_seas$season_index <- as.integer(as.factor(d_hr_seas$season))
+d_hr_seas$year_index <- as.integer(as.factor(d_hr_seas$year))
+
+str(d_hr_seas)
+#extract group
+d_hr_seas$group_index <- as.integer(as.factor(d_hr_seas$group))
+d_hr_seas$group_size_std <- standardize(d_hr_seas$group_size)
+#shape and rate
+d_hr_seas$scale <- d_hr_seas$mean_area/d_hr_seas$DOF
+d_hr_seas$rate <- d_hr_seas$DOF/d_hr_seas$mean_area
+d_hr_seas$shape <- d_hr_seas$DOF
+
+d_mei_hr_data$year_index_mei <- as.integer(as.factor(d_mei_hr_data$year))
+
+list_area_seas <- list(
+  hr_area_mean=d_hr_seas$mean_area ,
+  group_index=d_hr_seas$group_index ,
+  group_size=d_hr_seas$group_size ,
+  year_index=d_hr_seas$year_index,
+  year=as.integer(d_hr_seas$year),
+  # mei=d_mei_hr_data$mei ,
+  # year_mei=d_mei_hr_data$year ,
+  # year_index_mei=as.integer(as.factor(d_mei_hr_data$year)),
+  # N_years=length(unique(d_mei_hr_data$year)),
+  mei_dry=d_mei_hr_data$mei[d_mei_hr_data$season_index==1] ,
+  mei_wet=d_mei_hr_data$mei[d_mei_hr_data$season_index==2] ,
+  #year_mei=d_mei_hr_data$year ,
+  year_index_mei_dry=d_mei_hr_data$year_index_mei[d_mei_hr_data$season_index==1],
+  year_index_mei_wet=d_mei_hr_data$year_index_mei[d_mei_hr_data$season_index==2],
+  N_years=length(unique(d_mei_hr_data$year)),
+  #season_index_mei=d_mei_hr_data$season_index ,
+  season_index=d_hr_seas$season_index ,
+  N=nrow(d_hr_seas) ,
+  N_groups=length(unique(d_hr_seas$group_index)) ,
+  kde_shape=d_hr_seas$shape ,
+  kde_rate=d_hr_seas$rate ,
+  kde_scale=d_hr_seas$scale,
+  wet=d_hr_seas$season_index - 1,
+  group_size_std=d_hr_seas$group_size_std
+)
+str(list_area_seas)
+
+
+###overlap
+d_ov <- read.csv("data/df_slpHR_dyadic_overlap.csv")
+str(d_ov)
+d_ov$year1 <- as.integer(str_sub(d_ov$p1,4,7))
+d_ov$year2 <- as.integer(str_sub(d_ov$p2,4,7))
+d_ov$group1 <- str_sub(d_ov$p1,1,2)
+d_ov$group2 <- str_sub(d_ov$p2,1,2)
+
+d_ov2 <- d_ov[which(d_ov$year1==d_ov$year2),]
+d_ov2 <- d_ov2[which(d_ov2$group1!=d_ov2$group2),]
+d_ov2 <- d_ov2[d_ov2$overlap_uds>0,] #drop zeros for now
+sort(unique(d_ov2$group1))==sort(unique(d_ov2$group2))##if true we good for model
+sort(unique(d_ov2$group1))
+sort(unique(d_ov2$group2))
+#get sp into g1 and aa into g2
+criteria <- which(d_ov2$group1=="aa" & d_ov2$group2=="sp")
+d_ov2$group1[criteria[1:2]] <- "sp"
+d_ov2$group2[criteria[1:2]] <- "aa"
+sort(unique(d_ov2$group1))==sort(unique(d_ov2$group2))##if true we good for model
+sort(unique(d_ov2$group1))
+sort(unique(d_ov2$group2))
+
+d_ov2$g1_index <- as.integer(as.factor(d_ov2$group1))
+d_ov2$g2_index <- as.integer(as.factor(d_ov2$group2))
+d_ov2$year_index <- as.integer(as.factor(d_ov2$year1))
+sort(unique(d_ov2$year1))==sort(unique(d_ov2$year2)) #should be true too
+d_ov2$dyad <- apply(d_ov2[,7:8], 1, function(s) paste0(sort(s), collapse='')) #get dyad level indicators
+d_ov2$d_index <- as.integer(as.factor(d_ov2$dyad))
+d_ov2$y
+
+
+d_mei_ov_data <- d_mei_hr_data[which(d_mei_hr_data$year %in% unique(d_ov2$year1)),]
+d_mei_ov_data$year_index_mei <- as.integer(as.factor(d_mei_ov_data$year))
+#note that a zero augmented beta is the way to go, but i will drop zeros and do beta for now
+list_ov <- list(
+  N=nrow(d_ov2) ,
+  N_groups=length(unique(d_ov2$g1_index)) ,
+  N_dyads=length(unique(d_ov2$d_index)) ,
+  overlap_uds = d_ov2$overlap_uds ,
+  g1_index=d_ov2$g1_index ,
+  g2_index=d_ov2$g2_index ,
+  d_index=d_ov2$d_index,
+  year_index=d_ov2$year_index,
+  year=d_ov2$year1,
+  mei=d_mei_ov_data$mei ,
+  year_mei=d_mei_ov_data$year ,
+  year_index_mei=d_mei_ov_data$year_index_mei,
+  N_years=length(unique(d_mei_ov_data$year)) ,
+  N_mei = nrow(d_mei_ov_data)
+)
+
+
+### riparian data
+drip <- read.csv("data/df_seasonal_riparian.csv")
+str(drip)
+drip$group_index <- as.integer(as.factor(drip$group))
+drip$group_size_std <- standardize(drip$group_size)
+
+d_mei_hr_data$year_index_mei <- as.integer(as.factor(d_mei_hr_data$year))
+drip$season_index <- as.integer(as.factor(drip$season))
+drip$year_index <- as.integer(as.factor(drip$year))
+
+drip$mei_sample_mean <- 0
+for(i in 1:nrow(drip)){
+ drip$mei_sample_mean[i] <- mean(d_mei_hr_data$mei[d_mei_hr_data$season==drip$season[i] & d_mei_hr_data$year==drip$year[i]])
+}
+
+list_rip <- list(
+  hr_area=round(drip$hr_area),
+  intersect_area=round(drip$intersect_area) ,
+  prop_river=drip$prop_river ,
+  group_index=drip$group_index ,
+  group_size=drip$group_size ,
+  year_index=drip$year_index,
+  year=as.integer(drip$year),
+  mei_dry=d_mei_hr_data$mei[d_mei_hr_data$season_index==1] ,
+  mei_wet=d_mei_hr_data$mei[d_mei_hr_data$season_index==2] ,
+  year_index_mei_dry=d_mei_hr_data$year_index_mei[d_mei_hr_data$season_index==1],
+  year_index_mei_wet=d_mei_hr_data$year_index_mei[d_mei_hr_data$season_index==2],
+  N_years=length(unique(d_mei_hr_data$year)),
+  season_index=drip$season_index ,
+  N=nrow(drip) ,
+  N_groups=length(unique(drip$group_index)) ,
+  wet=drip$season_index - 1,
+  group_size_std=drip$group_size_std
+)
+
+dripog <-
+
+

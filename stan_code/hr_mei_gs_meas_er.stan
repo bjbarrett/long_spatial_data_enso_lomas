@@ -1,7 +1,8 @@
 data{
   // mei data
-  vector[288] mei;
-  array[288] int year_index_mei;
+  int N_mei;
+  vector[N_mei] mei;
+  array[N_mei] int year_index_mei;
   int N_years;
 
   // monkey data
@@ -11,7 +12,7 @@ data{
   int N_groups;
   array[N] int year_index;
   array[N] int group_index;
-  vector[N] group_size;
+  vector[N] group_size_std;
 }
 
 parameters{
@@ -67,7 +68,7 @@ for (i in 1:N_years) {
   hr_area_obs=hr_area_true; // store posterior as temp variable to make outcomes
   
     for ( i in 1:N ) {
-      lambda[i] = v_mu[1] + v[group_index[i], 1] + (v_mu[2] + v[group_index[i], 2]) * am_pred[year_index[i]] + (v_mu[3] + v[group_index[i], 3]) * group_size[i];
+      lambda[i] = v_mu[1] + v[group_index[i], 1] + (v_mu[2] + v[group_index[i], 2]) * am_pred[year_index[i]] + (v_mu[3] + v[group_index[i], 3]) * group_size_std[i];
       lambda[i] = exp(lambda[i]);
   }
   hr_area_obs ~ gamma( lambda/k , 1/k );
