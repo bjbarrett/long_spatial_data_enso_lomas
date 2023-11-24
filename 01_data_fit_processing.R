@@ -326,92 +326,127 @@ str(list_area_seas)
 
 
 ###overlap
-d_ov <- read.csv("data/df_slpHR_dyadic_overlap.csv")
-str(d_ov)
-d_ov$year1 <- as.integer(str_sub(d_ov$p1,4,7))
-d_ov$year2 <- as.integer(str_sub(d_ov$p2,4,7))
-d_ov$group1 <- str_sub(d_ov$p1,1,2)
-d_ov$group2 <- str_sub(d_ov$p2,1,2)
+# d_ov <- read.csv("data/df_slpHR_dyadic_overlap.csv")
+# str(d_ov)
+# d_ov$year1 <- as.integer(str_sub(d_ov$p1,4,7))
+# d_ov$year2 <- as.integer(str_sub(d_ov$p2,4,7))
+# d_ov$group1 <- str_sub(d_ov$p1,1,2)
+# d_ov$group2 <- str_sub(d_ov$p2,1,2)
+# 
+# d_ov2 <- d_ov[which(d_ov$year1==d_ov$year2),]
+# d_ov2 <- d_ov2[which(d_ov2$group1!=d_ov2$group2),]
+# d_ov2 <- d_ov2[d_ov2$overlap_uds>0,] #drop zeros for now
+# sort(unique(d_ov2$group1))==sort(unique(d_ov2$group2))##if true we good for model
+# sort(unique(d_ov2$group1))
+# sort(unique(d_ov2$group2))
+# #get sp into g1 and aa into g2
+# criteria <- which(d_ov2$group1=="aa" & d_ov2$group2=="sp")
+# d_ov2$group1[criteria[1:2]] <- "sp"
+# d_ov2$group2[criteria[1:2]] <- "aa"
+# sort(unique(d_ov2$group1))==sort(unique(d_ov2$group2))##if true we good for model
+# sort(unique(d_ov2$group1))
+# sort(unique(d_ov2$group2))
+# 
+# d_ov2$g1_index <- as.integer(as.factor(d_ov2$group1))
+# d_ov2$g2_index <- as.integer(as.factor(d_ov2$group2))
+# d_ov2$year_index <- as.integer(as.factor(d_ov2$year1))
+# sort(unique(d_ov2$year1))==sort(unique(d_ov2$year2)) #should be true too
+# d_ov2$dyad <- apply(d_ov2[,7:8], 1, function(s) paste0(sort(s), collapse='')) #get dyad level indicators
+# d_ov2$d_index <- as.integer(as.factor(d_ov2$dyad))
+# d_ov2$y
+# 
+# 
+# d_mei_ov_data <- d_mei_hr_data[which(d_mei_hr_data$year %in% unique(d_ov2$year1)),]
+# d_mei_ov_data$year_index_mei <- as.integer(as.factor(d_mei_ov_data$year))
+# #note that a zero augmented beta is the way to go, but i will drop zeros and do beta for now
+# list_ov <- list(
+#   N=nrow(d_ov2) ,
+#   N_groups=length(unique(d_ov2$g1_index)) ,
+#   N_dyads=length(unique(d_ov2$d_index)) ,
+#   overlap_uds = d_ov2$overlap_uds ,
+#   g1_index=d_ov2$g1_index ,
+#   g2_index=d_ov2$g2_index ,
+#   d_index=d_ov2$d_index,
+#   year_index=d_ov2$year_index,
+#   year=d_ov2$year1,
+#   mei=d_mei_ov_data$mei ,
+#   year_mei=d_mei_ov_data$year ,
+#   year_index_mei=d_mei_ov_data$year_index_mei,
+#   N_years=length(unique(d_mei_ov_data$year)) ,
+#   N_mei = nrow(d_mei_ov_data)
+# )
+# 
+# 
+# ### riparian data
+# drip <- read.csv("data/df_seasonal_riparian.csv")
+# str(drip)
+# drip$group_index <- as.integer(as.factor(drip$group))
+# drip$group_size_std <- standardize(drip$group_size)
+# 
+# d_mei_hr_data$year_index_mei <- as.integer(as.factor(d_mei_hr_data$year))
+# drip$season_index <- as.integer(as.factor(drip$season))
+# drip$year_index <- as.integer(as.factor(drip$year))
+# 
+# drip$mei_sample_mean <- 0
+# for(i in 1:nrow(drip)){
+#  drip$mei_sample_mean[i] <- mean(d_mei_hr_data$mei[d_mei_hr_data$season==drip$season[i] & d_mei_hr_data$year==drip$year[i]])
+# }
+# 
+# list_rip <- list(
+#   hr_area=round(drip$hr_area),
+#   intersect_area=round(drip$intersect_area) ,
+#   prop_river=drip$prop_river ,
+#   group_index=drip$group_index ,
+#   group_size=drip$group_size ,
+#   year_index=drip$year_index,
+#   year=as.integer(drip$year),
+#   mei_dry=d_mei_hr_data$mei[d_mei_hr_data$season_index==1] ,
+#   mei_wet=d_mei_hr_data$mei[d_mei_hr_data$season_index==2] ,
+#   year_index_mei_dry=d_mei_hr_data$year_index_mei[d_mei_hr_data$season_index==1],
+#   year_index_mei_wet=d_mei_hr_data$year_index_mei[d_mei_hr_data$season_index==2],
+#   N_years=length(unique(d_mei_hr_data$year)),
+#   season_index=drip$season_index ,
+#   N=nrow(drip) ,
+#   N_groups=length(unique(drip$group_index)) ,
+#   wet=drip$season_index - 1,
+#   group_size_std=drip$group_size_std
+# )
 
-d_ov2 <- d_ov[which(d_ov$year1==d_ov$year2),]
-d_ov2 <- d_ov2[which(d_ov2$group1!=d_ov2$group2),]
-d_ov2 <- d_ov2[d_ov2$overlap_uds>0,] #drop zeros for now
-sort(unique(d_ov2$group1))==sort(unique(d_ov2$group2))##if true we good for model
-sort(unique(d_ov2$group1))
-sort(unique(d_ov2$group2))
-#get sp into g1 and aa into g2
-criteria <- which(d_ov2$group1=="aa" & d_ov2$group2=="sp")
-d_ov2$group1[criteria[1:2]] <- "sp"
-d_ov2$group2[criteria[1:2]] <- "aa"
-sort(unique(d_ov2$group1))==sort(unique(d_ov2$group2))##if true we good for model
-sort(unique(d_ov2$group1))
-sort(unique(d_ov2$group2))
-
-d_ov2$g1_index <- as.integer(as.factor(d_ov2$group1))
-d_ov2$g2_index <- as.integer(as.factor(d_ov2$group2))
-d_ov2$year_index <- as.integer(as.factor(d_ov2$year1))
-sort(unique(d_ov2$year1))==sort(unique(d_ov2$year2)) #should be true too
-d_ov2$dyad <- apply(d_ov2[,7:8], 1, function(s) paste0(sort(s), collapse='')) #get dyad level indicators
-d_ov2$d_index <- as.integer(as.factor(d_ov2$dyad))
-d_ov2$y
-
-
-d_mei_ov_data <- d_mei_hr_data[which(d_mei_hr_data$year %in% unique(d_ov2$year1)),]
-d_mei_ov_data$year_index_mei <- as.integer(as.factor(d_mei_ov_data$year))
-#note that a zero augmented beta is the way to go, but i will drop zeros and do beta for now
-list_ov <- list(
-  N=nrow(d_ov2) ,
-  N_groups=length(unique(d_ov2$g1_index)) ,
-  N_dyads=length(unique(d_ov2$d_index)) ,
-  overlap_uds = d_ov2$overlap_uds ,
-  g1_index=d_ov2$g1_index ,
-  g2_index=d_ov2$g2_index ,
-  d_index=d_ov2$d_index,
-  year_index=d_ov2$year_index,
-  year=d_ov2$year1,
-  mei=d_mei_ov_data$mei ,
-  year_mei=d_mei_ov_data$year ,
-  year_index_mei=d_mei_ov_data$year_index_mei,
-  N_years=length(unique(d_mei_ov_data$year)) ,
-  N_mei = nrow(d_mei_ov_data)
-)
-
-
-### riparian data
-drip <- read.csv("data/df_seasonal_riparian.csv")
+drip <- read.csv("data/df_annual_riparian.csv")
+drip <- drip[drip$year < 2020,]
 str(drip)
 drip$group_index <- as.integer(as.factor(drip$group))
-drip$group_size_std <- standardize(drip$group_size)
+# drip$group_size_std <- standardize(drip$group_size)
 
 d_mei_hr_data$year_index_mei <- as.integer(as.factor(d_mei_hr_data$year))
-drip$season_index <- as.integer(as.factor(drip$season))
 drip$year_index <- as.integer(as.factor(drip$year))
 
-drip$mei_sample_mean <- 0
-for(i in 1:nrow(drip)){
- drip$mei_sample_mean[i] <- mean(d_mei_hr_data$mei[d_mei_hr_data$season==drip$season[i] & d_mei_hr_data$year==drip$year[i]])
-}
+# drip$mei_sample_mean <- 0
+# for(i in 1:nrow(drip)){
+#   drip$mei_sample_mean[i] <- mean(d_mei_hr_data$mei[d_mei_hr_data$season==drip$season[i] & d_mei_hr_data$year==drip$year[i]])
+# }
+d_mei_hr_data_2 <- d_mei[is.element(d_mei$year , drip$year),]
 
+str(d_mei_hr_data_2)
+d_mei_hr_data_2 <- d_mei_hr_data_2[d_mei_hr_data_2$year < 2020,]
+drip <- merge(drip,d_hr_gs[,c(4,5,11)],by="id") 
+
+##needs to be updated for 2023
 list_rip <- list(
   hr_area=round(drip$hr_area),
   intersect_area=round(drip$intersect_area) ,
   prop_river=drip$prop_river ,
   group_index=drip$group_index ,
-  group_size=drip$group_size ,
-  year_index=drip$year_index,
+  # group_size=drip$group_size ,
+  year_index=as.integer(as.factor(drip$year)),
   year=as.integer(drip$year),
-  mei_dry=d_mei_hr_data$mei[d_mei_hr_data$season_index==1] ,
-  mei_wet=d_mei_hr_data$mei[d_mei_hr_data$season_index==2] ,
-  year_index_mei_dry=d_mei_hr_data$year_index_mei[d_mei_hr_data$season_index==1],
-  year_index_mei_wet=d_mei_hr_data$year_index_mei[d_mei_hr_data$season_index==2],
-  N_years=length(unique(d_mei_hr_data$year)),
-  season_index=drip$season_index ,
+  mei=d_mei_hr_data_2$mei,
+  year_index_mei=as.integer(as.factor(d_mei_hr_data_2$year)),
+  N_years=length(unique(d_mei_hr_data_2$year)),
   N=nrow(drip) ,
-  N_groups=length(unique(drip$group_index)) ,
-  wet=drip$season_index - 1,
-  group_size_std=drip$group_size_std
+  N_groups=length(unique(drip$group_index)),
+  group_size_std=drip$group_size_std ,
+  group_size=drip$group_size
 )
-
-dripog <-
 
 

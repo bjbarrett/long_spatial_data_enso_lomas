@@ -252,107 +252,170 @@ dev.off()
 
 
 ####riparian plot
+# 
+# ######plot mean effect across all groups######
+# post <- extract.samples(fit_mei_gs_rip)
+# ######plot mean effect across all groups######
+# pdf(file="plots/m_rip_mei_hr_enso_group_varef.pdf" , width = 10 , height=7)
+# par(mfrow = c(3, 4))
+# par(cex = 0.6)
+# par(mar = c(2.5, 2.5, 0, 0), oma = c(4, 4, 1, 1))
+# 
+# plot(drip$mei_sample_mean,drip$prop_river , ylab="" ,
+#      xlab="" , col="white", xlim=c(-2.5,2.5) , ylim=c(0,.65) )
+# title("marginal predictions", line = -1)
+# # for (obs in 1:list_rip$N){
+# #   points( post$am_pred[1:50, c ,1]  ,
+# #           rep(list_rip$prop_river[obs] , 50 ) , col=col.alpha(group.pal[list_rip$group_index[obs]]), cex=.4 , pch=1)
+# #   points( post$am_pred[1:50, list_rip$year_index[obs] ,2]  ,
+# #           rep(list_rip$prop_river[obs] , 50 ) , col=col.alpha(group.pal[list_rip$group_index[obs]]), cex=.4 , pch=5)
+# # }
+# for (obs in 1:list_rip$N){
+#   points( list_rip$mei_dry[drip$year_index[obs] == list_rip$year_index_mei_dry] ,
+#           rep(list_rip$prop_river[obs] , 4 ) , col=col.alpha(group.pal[list_rip$group_index[obs]]), cex=.4 , pch=1)
+#   points( list_rip$mei_wet[drip$year_index[obs] == list_rip$year_index_mei_wet] ,
+#           rep(list_rip$prop_river[obs] , 8 ) , col=col.alpha(group.pal[list_rip$group_index[obs]]), cex=.4 , pch=5)
+# }
+# 
+# seq.mei <- seq(from=min(list_rip$mei_dry), to=max(list_rip$mei_dry) , length=30)
+# p.link.dry <- function(x) logistic(post$a +  post$bw*0 +  post$bm*x + post$bwXm*0*x + post$bgs*0 )
+# p.dry <- sapply( seq.mei ,p.link.dry )
+# p.mean <- apply( p.dry , 2 , mean )
+# p.PI <- apply( p.dry , 2 , PI , prob=0.89 )
+# # for (i in 1:100) {
+# #   lines(seq.mei , p.dry[i,] , col=col.alpha(alpha=0.1 ,"red"))
+# # }
+# lines(seq.mei , p.mean, col="brown" , lw=2)
+# lines(seq.mei , p.PI[1,], col="brown" , lty=3)
+# lines(seq.mei , p.PI[2,], col="brown" , lty=3)
+# 
+# ##wet
+# seq.mei <- seq(from=min(list_rip$mei_wet), to=max(list_rip$mei_wet) , length=30)
+# p.link.wet <- function(x) logistic(post$a +  post$bw*1 +  post$bm*x + post$bwXm*1*x + post$bgs*0 )
+# p.wet <- sapply( seq.mei ,p.link.wet )
+# p.mean <- apply( p.wet , 2 , mean )
+# p.PI <- apply( p.wet , 2 , PI , prob=0.89 )
+# # for (i in 1:100) {
+# #   lines(seq.mei , p.wet[i,] , col=col.alpha(alpha=0.1 ,"cornflowerblue"))
+# # }
+# lines(seq.mei , p.mean, col="darkgreen" , lw=2)
+# lines(seq.mei , p.PI[1,], col="darkgreen" , lty=3)
+# lines(seq.mei , p.PI[2,], col="darkgreen" , lty=3)
+# 
+# #####group specific effects
+# for(g in 1:max(list_rip$group_index)){
+#   plot(drip$mei_sample_mean,drip$prop_river , 
+#        ylab="" , xlab="" , col="white", 
+#        xlim=c(-2.5,2.5) , ylim=c(0,.65) )
+#   title(min(drip$group[drip$group_index==g]), line = -1)
+#   
+#   for (obs in which(drip$group_index==g) ){
+#     points( list_rip$mei_dry[drip$year_index[obs] == list_rip$year_index_mei_dry] ,
+#             rep(list_rip$prop_river[obs] , 4 ) , col=col.alpha("brown"), cex=.4 , pch=1)
+#     points( list_rip$mei_wet[drip$year_index[obs] == list_rip$year_index_mei_wet] ,
+#             rep(list_rip$prop_river[obs] , 8 ) , col=col.alpha("darkgreen"), cex=.4 , pch=5)
+#   }
+#   
+#   seq.mei <- seq(from=min(list_rip$mei_dry), to=max(list_rip$mei_dry) , length=30)
+#   p.link.dry <- function(x) logistic(post$a +  post$v[,g,1] +
+#                                        (post$bw + post$v[,g,2])*0 +
+#                                        +  (post$bm + post$v[,g,3])*x 
+#                                      + (post$bwXm  + post$v[,g,4])*0*x 
+#                                      + (post$bgs + post$v[,g,5])*0 )
+#   p.dry <- sapply( seq.mei ,p.link.dry )
+#   p.mean <- apply( p.dry , 2 , mean )
+#   p.PI <- apply( p.dry , 2 , PI , prob=0.89 )
+#   # for (i in 1:100) {
+#   #   lines(seq.mei , p.dry[i,] , col=col.alpha(alpha=0.1 ,"red"))
+#   # }
+#   lines(seq.mei , p.mean, col="brown" , lw=2)
+#   lines(seq.mei , p.PI[1,], col="brown" , lty=3)
+#   lines(seq.mei , p.PI[2,], col="brown" , lty=3)
+#   ##wet seas
+#   p.link.wet <- function(x) logistic(post$a +  post$v[,g,1] +
+#                                        (post$bw + post$v[,g,2])*1 +
+#                                        +  (post$bm + post$v[,g,3])*x 
+#                                      + (post$bwXm  + post$v[,g,4])*1*x 
+#                                      + (post$bgs + post$v[,g,5])*0 )
+#   seq.mei <- seq(from=min(list_rip$mei_wet), to=max(list_rip$mei_wet) , length=30)
+#   
+#   p.wet <- sapply( seq.mei ,p.link.wet )
+#   p.mean <- apply( p.wet , 2 , mean )
+#   p.PI <- apply( p.wet , 2 , PI , prob=0.89 )
+#   # for (i in 1:100) {
+#   #   lines(seq.mei , p.dry[i,] , col=col.alpha(alpha=0.1 ,"red"))
+#   # }
+#   lines(seq.mei , p.mean, col="darkgreen" , lw=2)
+#   lines(seq.mei , p.PI[1,], col="darkgreen" , lty=3)
+#   lines(seq.mei , p.PI[2,], col="darkgreen" , lty=3)
+#   
+# }
+# mtext("multivariate ENSO index (MEI)", side=1, line=1, cex=2, outer=TRUE)  
+# mtext("proportion home range in riparian habitat" , side=2, line=0.05, cex=2, outer=TRUE)  
+# 
+# dev.off()
+# 
 
-######plot mean effect across all groups######
-post <- extract.samples(fit_mei_gs_rip)
-######plot mean effect across all groups######
-pdf(file="plots/m_rip_mei_hr_enso_group_varef.pdf" , width = 10 , height=7)
+post <-extract.samples(fit_mei_rip)
+str(post)
+
+#######plot mean effect across all groups######
+pdf(file="plots/rip_mei_hr_enso_group_varef.pdf" , width = 10 , height=7)
 par(mfrow = c(3, 4))
 par(cex = 0.6)
 par(mar = c(2.5, 2.5, 0, 0), oma = c(4, 4, 1, 1))
 
-plot(drip$mei_sample_mean,drip$prop_river , ylab="" ,
+plot(drip$mean_mei,drip$prop_river , ylab="" ,
      xlab="" , col="white", xlim=c(-2.5,2.5) , ylim=c(0,.65) )
 title("marginal predictions", line = -1)
-# for (obs in 1:list_rip$N){
-#   points( post$am_pred[1:50, c ,1]  ,
-#           rep(list_rip$prop_river[obs] , 50 ) , col=col.alpha(group.pal[list_rip$group_index[obs]]), cex=.4 , pch=1)
-#   points( post$am_pred[1:50, list_rip$year_index[obs] ,2]  ,
-#           rep(list_rip$prop_river[obs] , 50 ) , col=col.alpha(group.pal[list_rip$group_index[obs]]), cex=.4 , pch=5)
-# }
+
 for (obs in 1:list_rip$N){
-  points( list_rip$mei_dry[drip$year_index[obs] == list_rip$year_index_mei_dry] ,
-          rep(list_rip$prop_river[obs] , 4 ) , col=col.alpha(group.pal[list_rip$group_index[obs]]), cex=.4 , pch=1)
-  points( list_rip$mei_wet[drip$year_index[obs] == list_rip$year_index_mei_wet] ,
-          rep(list_rip$prop_river[obs] , 8 ) , col=col.alpha(group.pal[list_rip$group_index[obs]]), cex=.4 , pch=5)
+  points( list_rip$mei[drip$year_index[obs] == list_rip$year_index_mei] ,
+          rep(list_rip$prop_river[obs] , 12 ) , col=col.alpha(group.pal[list_rip$group_index[obs]]), cex=.4 , pch=1)
 }
 
-seq.mei <- seq(from=min(list_rip$mei_dry), to=max(list_rip$mei_dry) , length=30)
-p.link.dry <- function(x) logistic(post$a +  post$bw*0 +  post$bm*x + post$bwXm*0*x + post$bgs*0 )
-p.dry <- sapply( seq.mei ,p.link.dry )
+seq.mei <- seq(from=min(list_rip$mei), to=max(list_rip$mei) , length=30)
+p.link <- function(x) logistic(post$v_mu[,1] + post$v_mu[,2]*x)
+p.dry <- sapply( seq.mei ,p.link )
 p.mean <- apply( p.dry , 2 , mean )
 p.PI <- apply( p.dry , 2 , PI , prob=0.89 )
-# for (i in 1:100) {
-#   lines(seq.mei , p.dry[i,] , col=col.alpha(alpha=0.1 ,"red"))
-# }
-lines(seq.mei , p.mean, col="brown" , lw=2)
-lines(seq.mei , p.PI[1,], col="brown" , lty=3)
-lines(seq.mei , p.PI[2,], col="brown" , lty=3)
+for (i in 1:100) {
+  lines(seq.mei , p.dry[i,] , col=col.alpha(alpha=0.1 ,"black"))
+}
+lines(seq.mei , p.mean, col="black" , lw=2)
+# lines(seq.mei , p.PI[1,], col="black" , lty=3)
+# lines(seq.mei , p.PI[2,], col="black" , lty=3)
 
-##wet
-seq.mei <- seq(from=min(list_rip$mei_wet), to=max(list_rip$mei_wet) , length=30)
-p.link.wet <- function(x) logistic(post$a +  post$bw*1 +  post$bm*x + post$bwXm*1*x + post$bgs*0 )
-p.wet <- sapply( seq.mei ,p.link.wet )
-p.mean <- apply( p.wet , 2 , mean )
-p.PI <- apply( p.wet , 2 , PI , prob=0.89 )
-# for (i in 1:100) {
-#   lines(seq.mei , p.wet[i,] , col=col.alpha(alpha=0.1 ,"cornflowerblue"))
-# }
-lines(seq.mei , p.mean, col="darkgreen" , lw=2)
-lines(seq.mei , p.PI[1,], col="darkgreen" , lty=3)
-lines(seq.mei , p.PI[2,], col="darkgreen" , lty=3)
+
 
 #####group specific effects
 for(g in 1:max(list_rip$group_index)){
-  plot(drip$mei_sample_mean,drip$prop_river , 
-       ylab="" , xlab="" , col="white", 
+  plot(drip$mean_mei,drip$prop_river ,
+       ylab="" , xlab="" , col="white",
        xlim=c(-2.5,2.5) , ylim=c(0,.65) )
   title(min(drip$group[drip$group_index==g]), line = -1)
-  
+
   for (obs in which(drip$group_index==g) ){
-    points( list_rip$mei_dry[drip$year_index[obs] == list_rip$year_index_mei_dry] ,
-            rep(list_rip$prop_river[obs] , 4 ) , col=col.alpha("brown"), cex=.4 , pch=1)
-    points( list_rip$mei_wet[drip$year_index[obs] == list_rip$year_index_mei_wet] ,
-            rep(list_rip$prop_river[obs] , 8 ) , col=col.alpha("darkgreen"), cex=.4 , pch=5)
+    points( list_rip$mei[drip$year_index[obs] == list_rip$year_index_mei] ,
+            rep(list_rip$prop_river[obs] , 12 ) , col=col.alpha("black"), cex=.4 , pch=1)
+   
   }
-  
-  seq.mei <- seq(from=min(list_rip$mei_dry), to=max(list_rip$mei_dry) , length=30)
-  p.link.dry <- function(x) logistic(post$a +  post$v[,g,1] +
-                                       (post$bw + post$v[,g,2])*0 +
-                                       +  (post$bm + post$v[,g,3])*x 
-                                     + (post$bwXm  + post$v[,g,4])*0*x 
-                                     + (post$bgs + post$v[,g,5])*0 )
-  p.dry <- sapply( seq.mei ,p.link.dry )
+
+  seq.mei <- seq(from=min(list_rip$mei), to=max(list_rip$mei) , length=30)
+  p.link <- function(x) logistic(  post$v_mu[,1] +  post$v[,g,1] 
+                                   + ( post$v_mu[,2] +  post$v[,g,2])*x)
+  p.dry <- sapply( seq.mei ,p.link )
   p.mean <- apply( p.dry , 2 , mean )
   p.PI <- apply( p.dry , 2 , PI , prob=0.89 )
-  # for (i in 1:100) {
-  #   lines(seq.mei , p.dry[i,] , col=col.alpha(alpha=0.1 ,"red"))
-  # }
-  lines(seq.mei , p.mean, col="brown" , lw=2)
-  lines(seq.mei , p.PI[1,], col="brown" , lty=3)
-  lines(seq.mei , p.PI[2,], col="brown" , lty=3)
-  ##wet seas
-  p.link.wet <- function(x) logistic(post$a +  post$v[,g,1] +
-                                       (post$bw + post$v[,g,2])*1 +
-                                       +  (post$bm + post$v[,g,3])*x 
-                                     + (post$bwXm  + post$v[,g,4])*1*x 
-                                     + (post$bgs + post$v[,g,5])*0 )
-  seq.mei <- seq(from=min(list_rip$mei_wet), to=max(list_rip$mei_wet) , length=30)
-  
-  p.wet <- sapply( seq.mei ,p.link.wet )
-  p.mean <- apply( p.wet , 2 , mean )
-  p.PI <- apply( p.wet , 2 , PI , prob=0.89 )
-  # for (i in 1:100) {
-  #   lines(seq.mei , p.dry[i,] , col=col.alpha(alpha=0.1 ,"red"))
-  # }
-  lines(seq.mei , p.mean, col="darkgreen" , lw=2)
-  lines(seq.mei , p.PI[1,], col="darkgreen" , lty=3)
-  lines(seq.mei , p.PI[2,], col="darkgreen" , lty=3)
-  
+  for (i in 1:100) {
+    lines(seq.mei , p.dry[i,] , col=col.alpha(alpha=0.1 , group.pal[g]))
+  }
+  lines(seq.mei , p.mean, col=group.pal[g] , lw=2)
+  # lines(seq.mei , p.PI[1,], col=col.alpha(group.pal[list_rip$group_index[obs]]) , lty=3)
+  # lines(seq.mei , p.PI[2,], col=col.alpha(group.pal[list_rip$group_index[obs]]) , lty=3)
 }
-mtext("multivariate ENSO index (MEI)", side=1, line=1, cex=2, outer=TRUE)  
-mtext("proportion home range in riparian habitat" , side=2, line=0.05, cex=2, outer=TRUE)  
+mtext("multivariate ENSO index (MEI)", side=1, line=1, cex=2, outer=TRUE)
+mtext("proportion home range in riparian habitat" , side=2, line=0.05, cex=2, outer=TRUE)
 
 dev.off()
-
 
