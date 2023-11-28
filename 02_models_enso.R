@@ -328,15 +328,15 @@ dens(rnorm(0,1,n=8000) , add=TRUE)
 precis(fit_seas_1, depth=3) 
 post <- extract.samples(fit_seas_1)
 str(post)
-
-for(i in 1:24){
-  dens(post$am[,i,1] , col="brown", lty=2 , ylim=c(0,4) , xlim=c(-3,3))
-  dens(post$am[,i,2] , col="green", lty=2 , add=TRUE)
-  dens(post$am_pred[,i,1] , col="brown", lty=1 , add=TRUE)
-  dens(post$am_pred[,i,2] , col="green", lty=1 , add=TRUE)
-  points( d_mei_hr_data$mei[d_mei_hr_data$season_index==1 & d_mei_hr_data$year_index_mei==i] , rep(0,4) , col="brown")
-  points( d_mei_hr_data$mei[d_mei_hr_data$season_index==2 & d_mei_hr_data$year_index_mei==i] , rep(0,8) , col="green")
-}
+# 
+# for(i in 1:24){
+#   dens(post$am[,i,1] , col="brown", lty=2 , ylim=c(0,4) , xlim=c(-3,3))
+#   dens(post$am[,i,2] , col="green", lty=2 , add=TRUE)
+#   dens(post$am_pred[,i,1] , col="brown", lty=1 , add=TRUE)
+#   dens(post$am_pred[,i,2] , col="green", lty=1 , add=TRUE)
+#   points( d_mei_hr_data$mei[d_mei_hr_data$season_index==1 & d_mei_hr_data$year_index_mei==i] , rep(0,4) , col="brown")
+#   points( d_mei_hr_data$mei[d_mei_hr_data$season_index==2 & d_mei_hr_data$year_index_mei==i] , rep(0,8) , col="green")
+# }
 
 file_name <- 'stan_code/hr_mei_meas_er_seas_big.stan' 
 fit_seas_2= stan( file = file_name,
@@ -369,6 +369,7 @@ fit_hr_gs_meas_er= stan( file = file_name,
 
 precis(fit_hr_gs_meas_er, depth=2 , pars=c("v_mu" , "sigma_g" , "k") )
 
+post_hrgs <- extract.samples(fit_hr_gs_meas_er)
 # ### overlap
 # dag1 <-
 #   dagitty('dag {
