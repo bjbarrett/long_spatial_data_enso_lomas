@@ -374,6 +374,18 @@ for (obs in 1:list_rip$N){
           rep(list_rip$prop_river[obs] , 12 ) , col=col.alpha(group.pal[list_rip$group_index[obs]]), cex=.4 , pch=1)
 }
 
+for (obs in 1:list_rip$N){
+  points( post$am_pred[1:100, list_rip$year_index[obs] ] ,
+          rep(list_rip$prop_river[obs] , 100 ) , col=col.alpha(group.pal[list_rip$group_index[obs]]), cex=.4)
+  
+}
+
+# for(i in 1:nrow(drip)){
+#   points(list_rip$mei[list_rip$year_index[i] == list_rip$year_index_mei] , 
+#          rep(list_rip$prop_river[i] , 12 ) ,
+#          col=col.alpha(group.pal[list_rip$group_index[i] ]) )
+# }
+
 seq.mei <- seq(from=min(list_rip$mei), to=max(list_rip$mei) , length=30)
 p.link <- function(x) logistic(post$v_mu[,1] + post$v_mu[,2]*x)
 p.dry <- sapply( seq.mei ,p.link )
@@ -395,12 +407,21 @@ for(g in 1:max(list_rip$group_index)){
        xlim=c(-2.5,2.5) , ylim=c(0,.65) )
   title(min(drip$group[drip$group_index==g]), line = -1)
 
-  for (obs in which(drip$group_index==g) ){
-    points( list_rip$mei[drip$year_index[obs] == list_rip$year_index_mei] ,
-            rep(list_rip$prop_river[obs] , 12 ) , col=col.alpha("black"), cex=.4 , pch=1)
-   
-  }
+  # for (obs in which(drip$group_index==g) ){
+  #   points( list_rip$mei[drip$year_index[obs] == list_rip$year_index_mei] ,
+  #           rep(list_rip$prop_river[obs] , 12 ) , col=col.alpha("black"), cex=.4 , pch=1)
+  # }
 
+  for (obs in which(list_rip$group_index==g) ){
+    points( post$am_pred[1:100, list_rip$year_index[obs] ] ,
+            rep(list_rip$prop_river[obs] , 100 ) , col=col.alpha("grey"), cex=.4 )
+  }
+  
+  for (obs in which(list_rip$group_index==g) ){
+    points( mean(post$am_pred[, list_rip$year_index[obs] ] ) ,
+            list_rip$prop_river[obs]  , col="grey", cex=1 )
+  }
+    
   seq.mei <- seq(from=min(list_rip$mei), to=max(list_rip$mei) , length=30)
   p.link <- function(x) logistic(  post$v_mu[,1] +  post$v[,g,1] 
                                    + ( post$v_mu[,2] +  post$v[,g,2])*x)
@@ -418,4 +439,11 @@ mtext("multivariate ENSO index (MEI)", side=1, line=1, cex=2, outer=TRUE)
 mtext("proportion home range in riparian habitat" , side=2, line=0.05, cex=2, outer=TRUE)
 
 dev.off()
+for(g in 1:11){
+  dens( (post$v_mu[,2] + post$v[,g,2]) , col=group.pal[g])
+}
+
+# traceplot(fit_mei_rip , pars="v" )
+# trankplot(fit_mei_rip , pars="v" )
+# trankplot(fit_mei_rip , pars="v_mu" )
 
