@@ -259,6 +259,7 @@ fit_hr_mei_meas_er= stan( file = file_name,
                     seed=3169
 )
 precis(fit_hr_mei_meas_er , depth=2 , c("sigma_g"))
+post_hrgsmei <- extract.samples(fit_hr_mei_meas_er)
 #precis(fit_hr, depth=2 , pars=c("sigma_g"))
 
 file_name <- 'stan_code/hr_mei_gs_meas_er.stan'
@@ -507,6 +508,7 @@ fit_mei_gs_rip = stan( file = file_name,
                        seed=1239
 )
 
+post_meirip <- extract.samples(fit_mei_gs_rip)
 
 precis(fit_mei_gs_rip , depth=2)
 precis(fit_mei_gs_rip , depth=3 , pars="v")

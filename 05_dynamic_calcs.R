@@ -7,11 +7,9 @@ prep_latex_variables <- function(named_list) {
   return(out)
 }
 
-# calcs <- list(
-#   nObs = prettyNum(nrow(obs), big.mark = ","), # assuming an `obs` data frame
-#   nPpl = nrow(ppl),                            # assuming a `ppl` data frame
-#   meanHeight = round(mean(obs$height), 1)
-# )
+PropPostPosi <- function(x , digits=3){
+  round( length(which(x > 0))/length(x) , digits )
+}
 
 #below functions makes output ready for tex for point estimates and hpdis
 
@@ -29,6 +27,14 @@ MedHpdiText <- function(squanch , probability=0.89 ){
   print(paste0(mbar,"[",hpdibar[[1]],",",hpdibar[[2]],"]" ))
 }
 
+sss <- post_hrgs$v[,,2] + post_hrgs$v_mu[,2]
+ttt <- post_hrgsmei$v[,,2] + post_hrgsmei$v_mu[,2]
+uuu <-  post_meirip$v[,,2] + post_meirip$v_mu[,2]
+apply(sss,2,mean)
+which.max(apply(sss,2,mean))
+
+for( i in 1:11) dens(sss[,i] , title=i)
+
 calcs <- list(
   nGroups = length(unique(d_hr_gs$group)), # assuming an `obs` data frame
   nYears = length(unique(d_hr_gs$year)),                            # assuming a `ppl` data frame
@@ -38,19 +44,20 @@ calcs <- list(
   minMedHpdiHRA = MedHpdiText(squanch=post_hrgs$hr_area_true[,which.min(apply(post_hrgs$hr_area_true , 2 , median))]),
   maxMedHpdiHRA = MedHpdiText(squanch=post_hrgs$hr_area_true[,which.max(apply(post_hrgs$hr_area_true , 2 , median))]),
   betaHRA = MedHpdiText( post_hrgs$v_mu[,2]) ,
-  # minMedHpdiBetaHRA = MedHpdiText( squanch=( post_hrgs$v[ , which.min(apply(post_hrgs$v , 2 , median)) , 2] )),
-  # maxMedHpdiBetaHRA = MedHpdiText( squanch=(  post_hrgs$v[ , which.max(apply(post_hrgs$v , 2 , median)) , 2] ))
+  propPosiHRA= PropPostPosi(post_hrgs$v_mu[,2]) ,
+  minMedHpdiBetaHRA = MedHpdiText( squanch=(sss[,which.min(apply(sss,2,mean))])),
+  maxMedHpdiBetaHRA = MedHpdiText( squanch=sss[,which.max(apply(sss,2,mean))]),
+  betaMEI = MedHpdiText( post_hrgsmei$v_mu[,2]) ,
+  propPosiMEI= PropPostPosi(post_hrgsmei$v_mu[,2]) ,
+  minMedHpdiBetaMEI = MedHpdiText( squanch=(ttt[,which.min(apply(ttt,2,mean))])),
+  maxMedHpdiBetaMEI = MedHpdiText( squanch=ttt[,which.max(apply(ttt,2,mean))]),
+  betaMEIrip = MedHpdiText( post_meirip$v_mu[,2]) ,
+  minMedHpdiBetaMEIrip = MedHpdiText( squanch=(uuu[,which.min(apply(uuu,2,mean))])),
+  maxMedHpdiBetaMEIrip = MedHpdiText( squanch=(uuu[,which.max(apply(uuu,2,mean))])) ,
+  propPosiMEIrip = PropPostPosi(post_meirip$v_mu[,2])
 )
 
-post_hrgs$v[ ,which.min(apply(post_hrgs$v , 2 , median)), 2]
+
 
 min(d_hr_gs$year)
 writeLines(prep_latex_variables(calcs), "calcs.tex")
-
-# put this in the tex file's preamble:
-# \input{calcs.tex}
-
-# now can write LaTeX things like
-# "the number of observations is \nObs,
-# the number of people is \nPpl,
-# the mean height is \meanHeight."
