@@ -49,22 +49,6 @@ for(i in c(1:3,5:11)){
   lines(grp_spl, col = group_pal[i])
 }
 
-pdf(file="plots/all_da_groups_raw.pdf" , width = 8 , height=11)
-par(mfrow = c(11, 1))
-par(mar = rep(1,4) +0.1, oma = rep(0,4) +0.1)
-#per group plot
-for(i in 1:11){
-  plot(d_mei$mei~d_mei$date , col=elcol_pal[d_mei$phase_index] , pch="x" ,
-       cex=0.7 , ylim=c(-2.5,2.5) , main=min(d_hr_gs_2$group[d_hr_gs_2$group_index==i] ) )
-  #lines(mei_spl, col = "grey3")
-  points( d_hr_gs_2$date[d_hr_gs_2$group_index==i] , 
-          standardize(d_hr_gs_2$hr_area_mean[d_hr_gs_2$group_index==i]) , 
-          col=group_pal[i] , pch=19)
-  abline(v=d_mei$date[i+i*11] , col="grey")
-  for (i in 1:33) abline(v=d_mei$date[i+i*11] , col="grey")
-  
-}
-dev.off()
 
 ###mei consolidate
 str(d_hr_gs_2)
@@ -194,34 +178,34 @@ list_area <- list(
   year_index=d_hr_gs_3$year_index
 )
 
-list_area_2 <- list(
-  hr_area_mean=d_hr_gs_3$hr_area_mean ,
-  hr_area_high=d_hr_gs_3$hr_area_high ,
-  hr_area_low=d_hr_gs_3$hr_area_low ,
-  hr_area_sd=d_hr_gs_3$hr_area_sd ,
-  hr_area_rate=d_hr_gs_3$rate ,
-  hr_area_shape=d_hr_gs_3$shape ,
-  group_index=d_hr_gs_3$group_index ,
-  group_size=d_hr_gs_3$group_size ,
-  group_size_std=d_hr_gs_3$group_size_std ,
-  year_index=d_hr_gs_3$year_index,
-  mei=d_mei_hr_data$mei ,
-  year_mei=d_mei_hr_data$year ,
-  year_index_mei=as.integer(as.factor(d_mei_hr_data$year)),
-  phase_index=d_mei_hr_data$phase_index,
-  N_years=length(unique(d_mei_hr_data$year)),
-  N=nrow(d_hr_gs_3) ,
-  N_groups=length(unique(d_hr_gs_3$group_index)) ,
-  mean_annual_mei=d_hr_gs_3$mean_annual_mei ,
-  min_annual_mei=d_hr_gs_3$min_annual_mei ,
-  max_annual_mei=d_hr_gs_3$max_annual_mei ,
-  sd_annual_mei=d_hr_gs_3$sd_annual_mei ,
-  kde_shape=d_hr_gs_3$shape ,
-  kde_rate=d_hr_gs_3$rate ,
-  kde_scale=d_hr_gs_3$scale ,
-  N_mei = nrow(d_mei_hr_data)
-  
-)
+# list_area_2 <- list(
+#   hr_area_mean=d_hr_gs_3$hr_area_mean ,
+#   hr_area_high=d_hr_gs_3$hr_area_high ,
+#   hr_area_low=d_hr_gs_3$hr_area_low ,
+#   hr_area_sd=d_hr_gs_3$hr_area_sd ,
+#   hr_area_rate=d_hr_gs_3$rate ,
+#   hr_area_shape=d_hr_gs_3$shape ,
+#   group_index=d_hr_gs_3$group_index ,
+#   group_size=d_hr_gs_3$group_size ,
+#   group_size_std=d_hr_gs_3$group_size_std ,
+#   year_index=d_hr_gs_3$year_index,
+#   mei=d_mei_hr_data$mei ,
+#   year_mei=d_mei_hr_data$year ,
+#   year_index_mei=as.integer(as.factor(d_mei_hr_data$year)),
+#   phase_index=d_mei_hr_data$phase_index,
+#   N_years=length(unique(d_mei_hr_data$year)),
+#   N=nrow(d_hr_gs_3) ,
+#   N_groups=length(unique(d_hr_gs_3$group_index)) ,
+#   mean_annual_mei=d_hr_gs_3$mean_annual_mei ,
+#   min_annual_mei=d_hr_gs_3$min_annual_mei ,
+#   max_annual_mei=d_hr_gs_3$max_annual_mei ,
+#   sd_annual_mei=d_hr_gs_3$sd_annual_mei ,
+#   kde_shape=d_hr_gs_3$shape ,
+#   kde_rate=d_hr_gs_3$rate ,
+#   kde_scale=d_hr_gs_3$scale ,
+#   N_mei = nrow(d_mei_hr_data)
+#   
+# )
 
 # list_area_3 <- list(
 #   hr_area_mean=d_hr_gs_3$hr_area_mean ,

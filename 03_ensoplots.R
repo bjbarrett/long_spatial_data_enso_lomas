@@ -1,15 +1,48 @@
 library(RColorBrewer)
 group.pal <- brewer.pal( max(d_hr_gs$group_index), "Spectral")
 dev.off()
+
+
+
+pdf(file="plots/all_da_groups_raw.pdf" , width = 8 , height=11)
+par(mfrow = c(11, 1))
+par(mar = rep(1,4) +0.1, oma = rep(0,4) +0.1)
+#per group plot
+for(i in 1:11){
+  plot(d_mei$mei~d_mei$date , col=elcol_pal[d_mei$phase_index] , pch="x" ,
+       cex=0.5 , ylim=c(-4,4) , main=min(d_hr_gs_2$group[d_hr_gs_2$group_index==i] ) )
+  #lines(mei_spl, col = "grey3")
+  points( d_hr_gs_2$date[d_hr_gs_2$group_index==i] , 
+          standardize(d_hr_gs_2$hr_area_mean[d_hr_gs_2$group_index==i]) , 
+          bg=group_pal[i] , pch=23 , cex=1.4 , col="darkgrey")
+  
+  # datez <- d_hr_gs_2$date[d_hr_gs_2$group_index==i]
+  # gs_stdz_low <- standardize(d_hr_gs_2$hr_area_low[d_hr_gs_2$group_index==i])
+  # gs_stdz_high <- standardize(d_hr_gs_2$hr_area_high[d_hr_gs_2$group_index==i])
+  # 
+  # for(j in 1:length(datez)){
+  # segments( x0=datez[j] , y0=gs_stdz_low[j] , 
+  #          x1=datez[j]  , y1=gs_stdz_high[j] , 
+  #          lty=1 , col=group_pal[i] )
+  # }
+  
+  for (i in 1:33) abline(v=d_mei$date[i+i*11] , col="grey")
+  
+}
+dev.off()
+
 ######################################fit_hr
-post <- extract.samples(fit_hr_mei_meas_er) #different if fit
+post <- extract.samples(fit)
+#post <- extract.samples(fit_hr_mei_meas_er) #different if fit
 pdf(file="plots/enso_post.pdf" , width = 10 , height=7)
 par(mar = c(0, 0, 0, 0), oma = c(6, 1, 1, 1))
 par(mfrow = c(6, 4))
 for(i in 1:24){
   dens(post$am_pred[, i ] , ylim=c(0,2.5) , xlim=c(-2.5,2.5) , yaxt='n' , cex.axis=0.8 , xaxt='n')
   dens(post$am[, i ] , lty=2 , add=TRUE)
-  points(list_area_2$mei[list_area_2$year_index_mei==i] , rep(0,12), col=elcol_pal[list_area_2$phase_index[list_area_2$year_index_mei==i]] , pch=19)
+  points(list_area_2$mei[list_area_2$year_index_mei==i] , rep(0.1,12), 
+         col=elcol_pal[list_area_2$phase_index[list_area_2$year_index_mei==i]] 
+         , pch=19)
     if (i > 20){axis(1 , at=seq(from=-2,to=2,by=1) )}
     if (i <= 20){axis(1 , at=seq(from=-2,to=2,by=1) , labels=FALSE)}
    title(main=sort(unique(list_area_2$year_mei)[i]) , line=-1)
@@ -20,6 +53,8 @@ mtext(text="multivariate ENSO index",side=1,line=4,outer=TRUE,cex=1.7)
 dev.off()
 
 ######plot mean effect across all groups######
+post <- extract.samples(fit_hr_mei_meas_er) #different if fit
+
 pdf(file="plots/m_hr_enso_group_varef.pdf" , width = 10 , height=7)
 par(mfrow = c(3, 4))
 par(cex = 0.6)
