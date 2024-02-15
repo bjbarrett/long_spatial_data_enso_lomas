@@ -185,20 +185,6 @@ fit_hr= stan( file = file_name,
 
 precis(fit_hr , depth=2)
 
-# file_name <- 'stan_code/mei_hr_gs.stan'
-# fit_hr_gs= stan( file = file_name,
-#               data = list_area_2 ,
-#               iter = 4000,
-#               chains=4,
-#               cores=4,
-#               control=list(adapt_delta=0.99) ,
-#               refresh=250,
-#               init=0,
-#               seed=813
-# )
-# 
-# precis(fit_hr_gs , depth=2)
-
 #####hr shape scale
 
 file_name <- 'stan_code/hr_meas.stan'
@@ -259,43 +245,6 @@ fit_hr_mei_gs_meas_er= stan( file = file_name,
 precis(fit_hr_mei_gs_meas_er , depth=2 , c("v_mu" ))
 precis(fit_hr_mei_gs_meas_er , depth=2 , c("v_mu" , "sigma_g"))
 precis(fit_hr_mei_gs_meas_er , depth=3, c("Rho_g") )
-# 
-# #####seasonal models
-# file_name <- 'stan_code/hr_mei_meas_er_seas.stan' 
-# fit_seas_1= stan( file = file_name,
-#                                        data = list_area_seas ,
-#                                        iter = 4000,
-#                                        chains=4,
-#                                        cores=4,
-#                                        control=list(adapt_delta=0.99) ,
-#                                        refresh=250,
-#                                        init=0,
-#                                        seed=169
-# )
-# precis(fit_seas_1, depth=1 )
-# precis(fit_seas_1, depth=3 , pars='v')
-# precis(fit_seas_1, depth=3 , pars='Rho_g')
-# #dens(post$v_mu[,4])
-# dens(rnorm(0,1,n=8000) , add=TRUE)
-# precis(fit_seas_1, depth=3) 
-# post <- extract.samples(fit_seas_1)
-# str(post)
-# 
-# file_name <- 'stan_code/hr_mei_meas_er_seas_big.stan' 
-# fit_seas_2= stan( file = file_name,
-#                   data = list_area_seas ,
-#                   iter = 4000,
-#                   chains=4,
-#                   cores=4,
-#                   control=list(adapt_delta=0.99) ,
-#                   refresh=250,
-#                   init=0,
-#                   seed=169
-# )
-# 
-# precis(fit_seas_2, depth=1) 
-
-
 
 ###home range only
 file_name <- 'stan_code/hr_gs_meas_er.stan'
@@ -333,116 +282,6 @@ precis(fit_hr_loggs_meas_er, depth=2 , pars=c("v_mu" , "sigma_g" , "k") )
 
 post_hrgs <- extract.samples(fit_hr_gs_meas_er)
 
-# ### overlap
-# dag1 <-
-#   dagitty('dag {
-#    mei -> ra
-#    ra -> hra
-#    ra -> nmono
-#    ra -> ov
-#    nmono -> hra
-#    hra -> ov
-#    nmono -> ov
-#    cent -> ov
-#    ra -> cent
-#    mei [exposure]
-#    ov [outcome]
-#    ra [unobserved]
-#    mei -> cent
-#   }')
-
-##centroid distance????
-# plot(dag1)
-# adjustmentSets( dag1 , exposure="mei" , outcome="ov" )
-# print( impliedConditionalIndependencies( dag1 ) )
-# 
-# file_name <- 'stan_code/mei_ov.stan'
-# fit_ov= stan( file = file_name,
-#                          data = list_ov ,
-#                          iter = 2000,
-#                          chains=4,
-#                          cores=4,
-#                          control=list(adapt_delta=0.99) ,
-#                          refresh=250,
-#                          seed=6334,
-#                          init=0
-# )
-# 
-# precis(fit_ov , depth=2)
-# precis(fit_ov , depth=2 , pars="d")
-# 
-# post <- extract.samples(fit_ov)
-# str(post)
-# dens(logistic(post$d[,1]))
-# dens(logistic(post$d[,5]))
-# 
-# file_name <- 'stan_code/mei_ov_mei.stan' #stupid name
-# fit_ov_mei= stan( file = file_name,
-#               data = list_ov ,
-#               iter = 4000,
-#               chains=4,
-#               cores=4,
-#               control=list(adapt_delta=0.999) ,
-#               refresh=250,
-#               seed=2134,
-#               init=0.01
-# )
-# 
-# precis(fit_ov_mei, depth=3 , pars='g')
-# precis(fit_ov_mei, depth=3 , pars='am_pred')
-# precis(fit_ov_mei, depth=3 , pars='bm')
-# precis(fit_ov_mei, depth=1)
-# post <- extract.samples(fit_ov_mei)
-# str(post)
-# dens(post$g[,3,1])
-# file_name <- 'stan_code/test_mei.stan' #stupid name
-# fit_mei_teat= stan( file = file_name,
-#                   data = list_ov ,
-#                   iter = 4000,
-#                   chains=4,
-#                   cores=4,
-#                   control=list(adapt_delta=0.99) ,
-#                   refresh=250,
-#                   seed=6334,
-#                   init=0.01
-# )
-# 
-# precis(fit_mei_teat, depth=2)
-
-##fit riparian
-
-# file_name <- 'stan_code/rip_mei_meas_er_seas.stan' #stupid name
-# fit_mei_rip= stan( file = file_name,
-#                     data = list_rip ,
-#                     iter = 2000,
-#                     chains=4,
-#                     cores=4,
-#                     control=list(adapt_delta=0.99) ,
-#                     refresh=250,
-#                     seed=4739
-#                     
-# )
-# 
-# precis(fit_mei_rip, depth=2)
-
-
-# file_name <- 'stan_code/rip_mei_gs_meas_er_seas.stan' #stupid name
-# fit_mei_gs_rip= stan( file = file_name,
-#                    data = list_rip ,
-#                    iter = 2000,
-#                    chains=4,
-#                    cores=4,
-#                    control=list(adapt_delta=0.99) ,
-#                    refresh=250,
-#                    seed=19783
-#                    
-# )
-# 
-# precis(fit_mei_gs_rip, depth=2)
-# precis(fit_mei_gs_rip, depth=3 , pars="v")
-# 
-# precis(fit_mei_gs_rip, pars="Rho_g" , depth=3)
-# post <- extract.samples(fit_mei_gs_rip)
 
 file_name <- 'stan_code/rip_mei_meas_er.stan' #stupid name
 fit_mei_rip = stan( file = file_name,
@@ -458,20 +297,3 @@ fit_mei_rip = stan( file = file_name,
 precis(fit_mei_rip , depth=2)
 precis(fit_mei_rip , depth=3 , pars="v")
 precis(fit_mei_rip , depth=3 , pars="Rho_g")
-
-# file_name <- 'stan_code/rip_mei_gs_meas_er.stan' #stupid name
-# fit_mei_gs_rip = stan( file = file_name,
-#                        data = list_rip ,
-#                        iter = 3000,
-#                        chains=4,
-#                        cores=4,
-#                        control=list(adapt_delta=0.99) ,
-#                        refresh=250,
-#                        seed=1239
-# )
-# 
-# post_meirip <- extract.samples(fit_mei_gs_rip)
-# 
-# precis(fit_mei_gs_rip , depth=2)
-# precis(fit_mei_gs_rip , depth=3 , pars="v")
-# precis(fit_mei_gs_rip , depth=3 , pars="Rho_g")
