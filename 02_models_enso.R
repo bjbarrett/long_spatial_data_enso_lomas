@@ -122,8 +122,9 @@ list_area_2 <- list(
   hr_area_rate=d_hr_gs_3$rate ,
   hr_area_shape=d_hr_gs_3$shape ,
   group_index=d_hr_gs_3$group_index ,
-  group_size=d_hr_gs_3$group_size_std ,
+  group_size=d_hr_gs_3$group_size ,
   group_size_std=d_hr_gs_3$group_size_std ,
+  log_group_size=log(d_hr_gs_3$group_size) ,
   year_index=d_hr_gs_3$year_index,
   mei=d_mei_hr_data$mei ,
   year_mei=d_mei_hr_data$year ,
@@ -169,16 +170,7 @@ fit= stan( file = file_name,
 )
 
 precis(fit , depth=2)
-# post <- extract.samples(fit)
-# pdf(file="plots/enso_post.pdf" , width = 10 , height=7)
-# par(mar = c(2.5, 2.5, 0, 0), oma = c(1, 1, 1, 1))
-# par(mfrow = c(6, 4))
-# for(i in 1:24){
-#   dens(post$am[,i] , xlim=c(-3,3))
-#   dens(post$am_pred[,i], add=TRUE , lty=2)
-#   points(list_area_2$mei[list_area_2$year_index_mei==i] , rep(0,12), col="red")
-# }
-# dev.off()
+
 file_name <- 'stan_code/mei_hr.stan'
 fit_hr= stan( file = file_name,
             data = list_area_2 ,
@@ -193,19 +185,19 @@ fit_hr= stan( file = file_name,
 
 precis(fit_hr , depth=2)
 
-file_name <- 'stan_code/mei_hr_gs.stan'
-fit_hr_gs= stan( file = file_name,
-              data = list_area_2 ,
-              iter = 4000,
-              chains=4,
-              cores=4,
-              control=list(adapt_delta=0.99) ,
-              refresh=250,
-              init=0,
-              seed=813
-)
-
-precis(fit_hr_gs , depth=2)
+# file_name <- 'stan_code/mei_hr_gs.stan'
+# fit_hr_gs= stan( file = file_name,
+#               data = list_area_2 ,
+#               iter = 4000,
+#               chains=4,
+#               cores=4,
+#               control=list(adapt_delta=0.99) ,
+#               refresh=250,
+#               init=0,
+#               seed=813
+# )
+# 
+# precis(fit_hr_gs , depth=2)
 
 #####hr shape scale
 
@@ -221,15 +213,6 @@ fit_hr_post= stan( file = file_name,
                  seed=813
 )
 precis(fit_hr_post , depth=2)
-par(mfrow=c(12,12), oma=c(0,0,0,0), mar=c(0,0,0,0) )
-post <- extract.samples(fit_hr_post)
-for (i in 1:130){
-  dens(post$hr_area_true[,i] , xlim=c(0,6) ,col="red" , xaxt='n')
-  dens(rgamma(2000,shape=d_akde$shape[[i]], rate=d_akde$rate[[i]] ) , add=TRUE )
-  lines(density(rgamma(2000,shape=d_akde$shape[[i]], scale=d_akde$scale[[i]] ) ) , lty=2 )
-  points( d_akde$area[i] , 0.1 )
-  segments(  x0=d_akde$low[i], y0=0.1 , x1=d_akde$high[i] ,y1= 0.1 , col="blue")
-}
 
 file_name <- 'stan_code/hr_meas_varef.stan'
 fit_hr_varef= stan( file = file_name,
@@ -244,6 +227,7 @@ fit_hr_varef= stan( file = file_name,
 )
 precis(fit_hr_varef , depth=2)
 
+##below is model in supplemental actually used in paper
 
 file_name <- 'stan_code/hr_mei_meas_er.stan'
 fit_hr_mei_meas_er= stan( file = file_name,
@@ -260,6 +244,7 @@ precis(fit_hr_mei_meas_er , depth=2 , c("sigma_g"))
 post_hrgsmei <- extract.samples(fit_hr_mei_meas_er)
 #precis(fit_hr, depth=2 , pars=c("sigma_g"))
 
+###below is model used in main result
 file_name <- 'stan_code/hr_mei_gs_meas_er.stan'
 fit_hr_mei_gs_meas_er= stan( file = file_name,
                           data = list_area_2 ,
@@ -274,41 +259,41 @@ fit_hr_mei_gs_meas_er= stan( file = file_name,
 precis(fit_hr_mei_gs_meas_er , depth=2 , c("v_mu" ))
 precis(fit_hr_mei_gs_meas_er , depth=2 , c("v_mu" , "sigma_g"))
 precis(fit_hr_mei_gs_meas_er , depth=3, c("Rho_g") )
-
-#####seasonal models
-file_name <- 'stan_code/hr_mei_meas_er_seas.stan' 
-fit_seas_1= stan( file = file_name,
-                                       data = list_area_seas ,
-                                       iter = 4000,
-                                       chains=4,
-                                       cores=4,
-                                       control=list(adapt_delta=0.99) ,
-                                       refresh=250,
-                                       init=0,
-                                       seed=169
-)
-precis(fit_seas_1, depth=1 )
-precis(fit_seas_1, depth=3 , pars='v')
-precis(fit_seas_1, depth=3 , pars='Rho_g')
-#dens(post$v_mu[,4])
-dens(rnorm(0,1,n=8000) , add=TRUE)
-precis(fit_seas_1, depth=3) 
-post <- extract.samples(fit_seas_1)
-str(post)
-
-file_name <- 'stan_code/hr_mei_meas_er_seas_big.stan' 
-fit_seas_2= stan( file = file_name,
-                  data = list_area_seas ,
-                  iter = 4000,
-                  chains=4,
-                  cores=4,
-                  control=list(adapt_delta=0.99) ,
-                  refresh=250,
-                  init=0,
-                  seed=169
-)
-
-precis(fit_seas_2, depth=1) 
+# 
+# #####seasonal models
+# file_name <- 'stan_code/hr_mei_meas_er_seas.stan' 
+# fit_seas_1= stan( file = file_name,
+#                                        data = list_area_seas ,
+#                                        iter = 4000,
+#                                        chains=4,
+#                                        cores=4,
+#                                        control=list(adapt_delta=0.99) ,
+#                                        refresh=250,
+#                                        init=0,
+#                                        seed=169
+# )
+# precis(fit_seas_1, depth=1 )
+# precis(fit_seas_1, depth=3 , pars='v')
+# precis(fit_seas_1, depth=3 , pars='Rho_g')
+# #dens(post$v_mu[,4])
+# dens(rnorm(0,1,n=8000) , add=TRUE)
+# precis(fit_seas_1, depth=3) 
+# post <- extract.samples(fit_seas_1)
+# str(post)
+# 
+# file_name <- 'stan_code/hr_mei_meas_er_seas_big.stan' 
+# fit_seas_2= stan( file = file_name,
+#                   data = list_area_seas ,
+#                   iter = 4000,
+#                   chains=4,
+#                   cores=4,
+#                   control=list(adapt_delta=0.99) ,
+#                   refresh=250,
+#                   init=0,
+#                   seed=169
+# )
+# 
+# precis(fit_seas_2, depth=1) 
 
 
 
@@ -328,6 +313,26 @@ fit_hr_gs_meas_er= stan( file = file_name,
 precis(fit_hr_gs_meas_er, depth=2 , pars=c("v_mu" , "sigma_g" , "k") )
 
 post_hrgs <- extract.samples(fit_hr_gs_meas_er)
+
+## home range on log scale, is same as if you don't log it does not matter
+list_area_2_log <- list_area_2
+list_area_2_log$group_size <-  list_area_2_log$log_group_size
+file_name <- 'stan_code/hr_gs_meas_er.stan'
+fit_hr_loggs_meas_er= stan( file = file_name,
+                         data = list_area_2_log ,
+                         iter = 4000,
+                         chains=4,
+                         cores=4,
+                         control=list(adapt_delta=0.99) ,
+                         refresh=250,
+                         init=0,
+                         seed=169
+)
+
+precis(fit_hr_loggs_meas_er, depth=2 , pars=c("v_mu" , "sigma_g" , "k") )
+
+post_hrgs <- extract.samples(fit_hr_gs_meas_er)
+
 # ### overlap
 # dag1 <-
 #   dagitty('dag {
@@ -454,19 +459,19 @@ precis(fit_mei_rip , depth=2)
 precis(fit_mei_rip , depth=3 , pars="v")
 precis(fit_mei_rip , depth=3 , pars="Rho_g")
 
-file_name <- 'stan_code/rip_mei_gs_meas_er.stan' #stupid name
-fit_mei_gs_rip = stan( file = file_name,
-                       data = list_rip ,
-                       iter = 3000,
-                       chains=4,
-                       cores=4,
-                       control=list(adapt_delta=0.99) ,
-                       refresh=250,
-                       seed=1239
-)
-
-post_meirip <- extract.samples(fit_mei_gs_rip)
-
-precis(fit_mei_gs_rip , depth=2)
-precis(fit_mei_gs_rip , depth=3 , pars="v")
-precis(fit_mei_gs_rip , depth=3 , pars="Rho_g")
+# file_name <- 'stan_code/rip_mei_gs_meas_er.stan' #stupid name
+# fit_mei_gs_rip = stan( file = file_name,
+#                        data = list_rip ,
+#                        iter = 3000,
+#                        chains=4,
+#                        cores=4,
+#                        control=list(adapt_delta=0.99) ,
+#                        refresh=250,
+#                        seed=1239
+# )
+# 
+# post_meirip <- extract.samples(fit_mei_gs_rip)
+# 
+# precis(fit_mei_gs_rip , depth=2)
+# precis(fit_mei_gs_rip , depth=3 , pars="v")
+# precis(fit_mei_gs_rip , depth=3 , pars="Rho_g")

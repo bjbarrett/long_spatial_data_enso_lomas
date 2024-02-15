@@ -17,14 +17,14 @@ MeanHpdiText <- function(squanch , probability=0.89 ){
   # squanch <- exp(post_hrgs$v_mu[,2])
   mbar <- round( mean(squanch) , 2)
   hpdibar <- round( HPDI(squanch , prob=probability) , 2)
-  print(paste0(mbar,"[",hpdibar[[1]],",",hpdibar[[2]],"]" ))
+  print(paste0(mbar," [",hpdibar[[1]],",",hpdibar[[2]],"]" ))
 }
 
 MedHpdiText <- function(squanch , probability=0.89 ){
   # squanch <- exp(post_hrgs$v_mu[,2])
   mbar <- round( median(squanch) , 2)
   hpdibar <- round( HPDI(squanch , prob=probability) , 2)
-  print(paste0(mbar,"[",hpdibar[[1]],",",hpdibar[[2]],"]" ))
+  print(paste0(mbar," [",hpdibar[[1]],",",hpdibar[[2]],"]" ))
 }
 
 sss <- post_hrgs$v[,,2] + post_hrgs$v_mu[,2]

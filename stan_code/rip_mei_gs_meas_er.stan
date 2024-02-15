@@ -1,4 +1,3 @@
-// pick up here later
 data{
   // mei data
   int N_years;

@@ -204,7 +204,6 @@ list_area <- list(
 #   kde_rate=d_hr_gs_3$rate ,
 #   kde_scale=d_hr_gs_3$scale ,
 #   N_mei = nrow(d_mei_hr_data)
-#   
 # )
 
 # list_area_3 <- list(
