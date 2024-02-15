@@ -1,34 +1,34 @@
 library(RColorBrewer)
-group.pal <- brewer.pal( max(d_hr_gs$group_index), "Spectral")
+group.pal <- brewer.pal( max(d_hr_gs_3$group_index), "Spectral")
 dev.off()
 
-pdf(file="plots/all_da_groups_raw.pdf" , width = 8 , height=11)
-par(mfrow = c(11, 1))
-par(mar = rep(1,4) +0.1, oma = rep(0,4) +0.1)
-#per group plot
-for(i in 1:11){
-  plot(d_mei$mei~d_mei$date , col=elcol_pal[d_mei$phase_index] , pch="x" ,
-       cex=0.5 , ylim=c(-4,4) , main=min(d_hr_gs_2$group[d_hr_gs_2$group_index==i] ) )
-  #lines(mei_spl, col = "grey3")
-  points( d_hr_gs_2$date[d_hr_gs_2$group_index==i] , 
-          standardize(d_hr_gs_2$hr_area_mean[d_hr_gs_2$group_index==i]) , 
-          bg=group_pal[i] , pch=23 , cex=1.4 , col="darkgrey")
-  
-  # datez <- d_hr_gs_2$date[d_hr_gs_2$group_index==i]
-  # gs_stdz_low <- standardize(d_hr_gs_2$hr_area_low[d_hr_gs_2$group_index==i])
-  # gs_stdz_high <- standardize(d_hr_gs_2$hr_area_high[d_hr_gs_2$group_index==i])
-  # 
-  # for(j in 1:length(datez)){
-  # segments( x0=datez[j] , y0=gs_stdz_low[j] , 
-  #          x1=datez[j]  , y1=gs_stdz_high[j] , 
-  #          lty=1 , col=group_pal[i] )
-  # }
-  
-#for (i in 1:33) abline(v=d_mei$date[i+i*11] , col="grey")
-abline(v=d_mei$date[month(d_mei$date)==1] , col="grey")
-  
-}
-dev.off()
+# pdf(file="plots/all_da_groups_raw.pdf" , width = 8 , height=11)
+# par(mfrow = c(11, 1))
+# par(mar = rep(1,4) +0.1, oma = rep(0,4) +0.1)
+# #per group plot
+# for(i in 1:11){
+#   plot(d_mei$mei~d_mei$date , col=elcol_pal[d_mei$phase_index] , pch="x" ,
+#        cex=0.5 , ylim=c(-4,4) , main=min(d_hr_gs_3$group[d_hr_gs_3$group_index==i] ) )
+#   #lines(mei_spl, col = "grey3")
+#   points( d_hr_gs_3$date[d_hr_gs_3$group_index==i] , 
+#           standardize(d_hr_gs_3$hr_area_mean[d_hr_gs_3$group_index==i]) , 
+#           bg=group_pal[i] , pch=23 , cex=1.4 , col="darkgrey")
+#   
+#   # datez <- d_hr_gs_3$date[d_hr_gs_3$group_index==i]
+#   # gs_stdz_low <- standardize(d_hr_gs_3$hr_area_low[d_hr_gs_3$group_index==i])
+#   # gs_stdz_high <- standardize(d_hr_gs_3$hr_area_high[d_hr_gs_3$group_index==i])
+#   # 
+#   # for(j in 1:length(datez)){
+#   # segments( x0=datez[j] , y0=gs_stdz_low[j] , 
+#   #          x1=datez[j]  , y1=gs_stdz_high[j] , 
+#   #          lty=1 , col=group_pal[i] )
+#   # }
+#   
+# #for (i in 1:33) abline(v=d_mei$date[i+i*11] , col="grey")
+# abline(v=d_mei$date[month(d_mei$date)==1] , col="grey")
+#   
+# }
+# dev.off()
 
 
 ###hr post
@@ -37,10 +37,10 @@ pdf(file="plots/all_hr_post.pdf" , width =11 , height=13)
   post <- extract.samples(fit_hr_post)
   for (i in 1:130){
     dens(post$hr_area_true[,i] , xlim=c(0,10) ,col="red" , yaxt='n' , xaxt='n')
-    dens(rgamma(2000,shape=d_akde$shape[[i]], rate=d_akde$rate[[i]] ) , add=TRUE )
-    lines(density(rgamma(2000,shape=d_akde$shape[[i]], scale=d_akde$scale[[i]] ) ) , lty=2 )
-    points( d_akde$area[i] , 0.1 )
-    segments(  x0=d_akde$low[i], y0=0.1 , x1=d_akde$high[i] ,y1= 0.1 , col="blue")
+    dens(rgamma(2000,shape=d_hr_gs_3$shape[[i]], rate=d_hr_gs_3$rate[[i]] ) , add=TRUE )
+    lines(density(rgamma(2000,shape=d_hr_gs_3$shape[[i]], scale=d_hr_gs_3$scale[[i]] ) ) , lty=2 )
+    points( d_hr_gs_3$area[i] , 0.1 )
+    segments(  x0=d_hr_gs_3$low[i], y0=0.1 , x1=d_hr_gs_3$high[i] ,y1= 0.1 , col="blue")
     axis( 1 , at=1:10 , labels=FALSE )
     if(i>120){axis( 1 , at=1:10 , cex.axis=0.7 )}
   }

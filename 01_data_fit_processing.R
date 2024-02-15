@@ -40,14 +40,14 @@ d_mei$year_index_overall <- d_mei$year - 1989
 
 
 #all groups
-plot(d_mei$mei~d_mei$date , col=elcol_pal[d_mei$phase_index] , pch="x" , cex=0.7 , ylim=c(-2.5,2.5))
-lines(mei_spl, col = "grey3")
-points( d_hr_gs_2$date , standardize(d_hr_gs_2$hr_area_mean) , col=group_pal[d_hr_gs_2$group_index] , pch=19)
-abline(v=d_mei$date[1:33] , col="grey")
-for(i in c(1:3,5:11)){
-  grp_spl <- with(d_hr_gs_2[d_hr_gs_2$group_index==i,], smooth.spline(date, mei ,spar=.5))
-  lines(grp_spl, col = group_pal[i])
-}
+# plot(d_mei$mei~d_mei$date , col=elcol_pal[d_mei$phase_index] , pch="x" , cex=0.7 , ylim=c(-2.5,2.5))
+# lines(mei_spl, col = "grey3")
+# points( d_hr_gs_2$date , standardize(d_hr_gs_2$hr_area_mean) , col=group_pal[d_hr_gs_2$group_index] , pch=19)
+# abline(v=d_mei$date[1:33] , col="grey")
+# for(i in c(1:3,5:11)){
+#   grp_spl <- with(d_hr_gs_2[d_hr_gs_2$group_index==i,], smooth.spline(date, mei ,spar=.5))
+#   lines(grp_spl, col = group_pal[i])
+# }
 
 
 ###mei consolidate
@@ -62,38 +62,39 @@ sd_df <- aggregate(mei ~ year, d_mei, sd)
 names(sd_df)[2] <- "sd_annual_mei"
 ## get akdes
 # get UD telemetry object
-UD <- readRDS("~/Downloads/slp_1990-2019_RSF_AKDEs.rds")
+# UD <- readRDS("~/Downloads/slp_1990-2019_RSF_AKDEs.rds")
+# 
+# # function to get summary information from AKDEs
+# summarize_akde <- function(akde){
+#   
+#   summary <- summary(akde, units = FALSE) # makes the units fro all UDs the same (m2)
+#   
+#   tibble(id = akde@info$identity, 
+#          DOF = summary$DOF[1],
+#          low = (summary$CI[1])/1000000, # convert m2 to km2
+#          area = (summary$CI[2])/1000000,
+#          high = (summary$CI[3])/1000000)
+# }
+# 
+# # wrapper to stack area info into data frame
+# make_df <- function(id){
+#   map_dfr(id, summarize_akde) 
+# }
+# 
+# # apply functions to get data frame and calculate shape and rate
+# d_akde <- make_df(UD) %>% 
+#   mutate(scale = area/DOF,
+#          rate=DOF/area , 
+#          shape = DOF)
+# str(d_akde)
 
-# function to get summary information from AKDEs
-summarize_akde <- function(akde){
-  
-  summary <- summary(akde, units = FALSE) # makes the units fro all UDs the same (m2)
-  
-  tibble(id = akde@info$identity, 
-         DOF = summary$DOF[1],
-         low = (summary$CI[1])/1000000, # convert m2 to km2
-         area = (summary$CI[2])/1000000,
-         high = (summary$CI[3])/1000000)
-}
-
-# wrapper to stack area info into data frame
-make_df <- function(id){
-  map_dfr(id, summarize_akde) 
-}
-
-# apply functions to get data frame and calculate shape and rate
-d_akde <- make_df(UD) %>% 
-  mutate(scale = area/DOF,
-         rate=DOF/area , 
-         shape = DOF)
-str(d_akde)
 ##compile bigger data frames
 
 d_hr_gs_3 <- merge(d_hr_gs, mean_df , by="year")
 d_hr_gs_3 <- merge(d_hr_gs_3, min_df , by="year")
 d_hr_gs_3 <- merge(d_hr_gs_3, max_df , by="year")
 d_hr_gs_3 <- merge(d_hr_gs_3, sd_df , by="year")
-d_hr_gs_3 <- merge(d_hr_gs_3, d_akde , by="id")
+#d_hr_gs_3 <- merge(d_hr_gs_3, d_akde , by="id")
 
 d_hr_gs_3$year_index <- as.integer(as.factor(d_hr_gs_3$year))
 
@@ -146,7 +147,7 @@ d_mei_hr_data_2 <- d_mei[is.element(d_mei$year , drip$year),]
 
 str(d_mei_hr_data_2)
 d_mei_hr_data_2 <- d_mei_hr_data_2[d_mei_hr_data_2$year < 2020,]
-drip <- merge(drip,d_hr_gs[,c(4,5,11)],by="id") 
+drip <- merge(drip,d_hr_gs[,c(2,12,14)],by="id") 
 
 ##needs to be updated for 2023
 list_rip <- list(
@@ -165,5 +166,5 @@ list_rip <- list(
   group_size_std=drip$group_size_std ,
   group_size=drip$group_size
 )
-
+str(list_rip)
 

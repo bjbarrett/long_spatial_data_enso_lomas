@@ -29,25 +29,25 @@ min(d_mei$year)
 d_mei$year_index_overall <- d_mei$year - 1990
 
 #all groups
-plot(d_mei$mei~d_mei$date , col=elcol_pal[d_mei$phase_index] , pch="x" , cex=0.7 , ylim=c(-2.5,2.5))
-lines(mei_spl, col = "grey3")
-points( d_hr_gs_2$date , standardize(d_hr_gs_2$hr_area_mean) , col=group_pal[d_hr_gs_2$group_index] , pch=19)
-abline(v=d_mei$date[1:33] , col="grey")
-for(i in c(1:3,5:11)){
-  grp_spl <- with(d_hr_gs_2[d_hr_gs_2$group_index==i,], smooth.spline(date, mei ,spar=.5))
-  lines(grp_spl, col = group_pal[i])
-}
+# plot(d_mei$mei~d_mei$date , col=elcol_pal[d_mei$phase_index] , pch="x" , cex=0.7 , ylim=c(-2.5,2.5))
+# lines(mei_spl, col = "grey3")
+# #points( d_hr_gs_2$date , standardize(d_hr_gs_2$hr_area_mean) , col=group_pal[d_hr_gs_2$group_index] , pch=19)
+# abline(v=d_mei$date[1:33] , col="grey")
+# for(i in c(1:3,5:11)){
+#   grp_spl <- with(d_hr_gs_2[d_hr_gs_2$group_index==i,], smooth.spline(date, mei ,spar=.5))
+#   lines(grp_spl, col = group_pal[i])
+# }
 
 #per group plot
-for(i in 1:11){
-  plot(d_mei$mei~d_mei$date , col=elcol_pal[d_mei$phase_index] , pch="x" ,
-       cex=0.7 , ylim=c(-2.5,2.5) , main=min(d_hr_gs_2$group[d_hr_gs_2$group_index==i] ) )
-  lines(mei_spl, col = "grey3")
-  points( d_hr_gs_2$date[d_hr_gs_2$group_index==i] , 
-          standardize(d_hr_gs_2$hr_area_mean[d_hr_gs_2$group_index==i]) , 
-          col=group_pal[i] , pch=19)
-  abline(v=d_mei$date[1:33] , col="grey")
-}
+# for(i in 1:11){
+#   plot(d_mei$mei~d_mei$date , col=elcol_pal[d_mei$phase_index] , pch="x" ,
+#        cex=0.7 , ylim=c(-2.5,2.5) , main=min(d_hr_gs_2$group[d_hr_gs_2$group_index==i] ) )
+#   lines(mei_spl, col = "grey3")
+#   points( d_hr_gs_2$date[d_hr_gs_2$group_index==i] , 
+#           standardize(d_hr_gs_2$hr_area_mean[d_hr_gs_2$group_index==i]) , 
+#           col=group_pal[i] , pch=19)
+#   abline(v=d_mei$date[1:33] , col="grey")
+# }
 
 ###mei consolidate
 str(d_hr_gs_2)
@@ -60,51 +60,35 @@ names(min_df)[2] <- "min_annual_mei"
 sd_df <- aggregate(mei ~ year, d_mei, sd)
 names(sd_df)[2] <- "sd_annual_mei"
 
-## get akdes
-# get UD telemetry object
-UD <- readRDS("~/Downloads/slp_1990-2019_RSF_AKDEs.rds")
+### READ IN AREA DF
+d_hr_gs <- read.csv("data/df_slpHRarea_group_size.csv")
 
-# function to get summary information from AKDEs
-summarize_akde <- function(akde){
-  
-  summary <- summary(akde, units = FALSE) # makes the units fro all UDs the same (m2)
-
-  tibble(id = akde@info$identity, 
-         DOF = summary$DOF[1],
-         low = (summary$CI[1])/1000000, # convert m2 to km2
-         area = (summary$CI[2])/1000000,
-         high = (summary$CI[3])/1000000)
-}
-
-# wrapper to stack area info into data frame
-make_df <- function(id){
-  map_dfr(id, summarize_akde) 
-}
-
-# apply functions to get data frame and calculate shape and rate
-d_akde <- make_df(UD) %>% 
-  mutate(scale = area/DOF,
-         rate=DOF/area , 
-         shape = DOF)
-str(d_akde)
 ##compile bigger data frames
 
 d_hr_gs_3 <- merge(d_hr_gs, mean_df , by="year")
 d_hr_gs_3 <- merge(d_hr_gs_3, min_df , by="year")
 d_hr_gs_3 <- merge(d_hr_gs_3, max_df , by="year")
 d_hr_gs_3 <- merge(d_hr_gs_3, sd_df , by="year")
-d_hr_gs_3 <- merge(d_hr_gs_3, d_akde , by="id")
+#d_hr_gs_3 <- merge(d_hr_gs_3, d_akde , by="id")
 
 d_hr_gs_3$year_index <- as.integer(as.factor(d_hr_gs_3$year))
 d_mei_hr_data <- d_mei[is.element(d_mei$year , d_hr_gs_3$year),]
 
 str(d_hr_gs_3)
 
+# add columns
+d_hr_gs_3$hr_area_mean <- d_hr_gs_3$area
+d_hr_gs_3$hr_area_low <- d_hr_gs_3$low
+d_hr_gs_3$hr_area_high <- d_hr_gs_3$high
+d_hr_gs_3$group_index <- as.integer(as.factor(d_hr_gs_3$group))
+d_hr_gs_3$group_size_std <- standardize(d_hr_gs_3$group_size)
+
+
 list_area <- list(
   hr_area_mean=d_hr_gs_3$hr_area_mean ,
   hr_area_high=d_hr_gs_3$hr_area_high ,
   hr_area_low=d_hr_gs_3$hr_area_low ,
-  hr_area_sd=d_hr_gs_3$hr_area_sd ,
+  #hr_area_sd=d_hr_gs_3$hr_area_sd ,
   mean_annual_mei=d_hr_gs_3$mean_annual_mei ,
   min_annual_mei=d_hr_gs_3$min_annual_mei ,
   max_annual_mei=d_hr_gs_3$max_annual_mei ,
@@ -118,7 +102,7 @@ list_area_2 <- list(
   hr_area_mean=d_hr_gs_3$hr_area_mean ,
   hr_area_high=d_hr_gs_3$hr_area_high ,
   hr_area_low=d_hr_gs_3$hr_area_low ,
-  hr_area_sd=d_hr_gs_3$hr_area_sd ,
+  #hr_area_sd=d_hr_gs_3$hr_area_sd ,
   hr_area_rate=d_hr_gs_3$rate ,
   hr_area_shape=d_hr_gs_3$shape ,
   group_index=d_hr_gs_3$group_index ,
