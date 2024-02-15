@@ -134,8 +134,8 @@ set_ulam_cmdstan(TRUE)
 ###visually inspect eate shape
 
 for(i in 10:20){
-  plot(density(rgamma(10000,shape=d_akde$shape[[i]], rate=d_akde$rate[[i]] ) , xlim=c(0,10)) , main="blah" )
-  lines(density(rgamma(10000,shape=d_akde$shape[[i]], scale=d_akde$scale[[i]] ) ) , lty=2 )
+  plot(density(rgamma(10000,shape=d_hr_gs_3$shape[[i]], rate=d_hr_gs_3$rate[[i]] ) , xlim=c(0,10)) , main="blah" )
+  lines(density(rgamma(10000,shape=d_hr_gs_3$shape[[i]], scale=d_hr_gs_3$scale[[i]] ) ) , lty=2 )
   points( d_akde$area[i] , 0.1 )
   segments(  x0=d_akde$low[i], y0=0.1 , x1=d_akde$high[i] ,y1= 0.1 , col="blue")
 }
@@ -278,6 +278,7 @@ fit_mei_rip = stan( file = file_name,
                    seed=1239
 )
 
+post_meirip <- extract.samples(fit_mei_rip)
 precis(fit_mei_rip , depth=2)
 precis(fit_mei_rip , depth=3 , pars="v")
 precis(fit_mei_rip , depth=3 , pars="Rho_g")
