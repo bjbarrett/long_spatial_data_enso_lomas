@@ -1,5 +1,6 @@
 library(RColorBrewer)
 group.pal <- brewer.pal( max(d_hr_gs_3$group_index), "Spectral")
+group.pal <- c(group.pal[-6], "#CF9FFF")
 dev.off()
 
 # pdf(file="plots/all_da_groups_raw.pdf" , width = 8 , height=11)
@@ -152,61 +153,61 @@ dev.off()
 
 ####group size and home range
 # ######plot mean effect across all groups######
-# post <- extract.samples(fit_hr_gs_meas_er)
-# pdf(file="plots/m_gs_hr_group_varef.pdf" , width = 10 , height=7)
-# par(mfrow = c(3, 4))
-# par(cex = 0.6)
-# par(mar = c(3, 3, 0, 0), oma = c(4, 4, 1, 1))
-# 
-# plot(list_area_2$group_size_std,list_area_2$hr_area_mean , ylab="" ,
-#      xlab="" , col=group.pal[list_area_2$group_index], 
-#      xlim=c(min(list_area_2$group_size_std),max(list_area_2$group_size_std)) , ylim=c(0,10.2) ,  xaxt="n"  , pch=19)
-# title("marginal predictions", line = -1 )
-# axis( 1 , at= ( seq(from=5 , to=40 , by=5) - mean(list_area_2$group_size))/sd(list_area_2$group_size) 
-#       , labels= seq(from=5 , to=40 , by=5) )
-# # jittz <- rnorm(mean=0,sd=0.01 , n=list_area_2$N) #to get some seperation on x axis
-# segments(x0=list_area_2$group_size_std , y0=list_area_2$hr_area_low, 
-#          x1=list_area_2$group_size_std  , y1=list_area_2$hr_area_high , 
-#          lty=1 , col=group.pal[list_area_2$group_index])
-# 
-# seq.gs <- seq(from=min(list_area_2$group_size_std), to=max(list_area_2$group_size_std) , length=30)
-# lambda.link <- function(x) exp(post$v_mu[,1] +  post$v_mu[,2] * x )
-# lambda <- sapply( seq.gs ,lambda.link )
-# lambda.mean <- apply( lambda , 2 , mean )
-# lambda.PI <- apply( lambda , 2 , PI , prob=0.89 )
-# for (i in 1:100) {
-#   lines(seq.mei , lambda[i,] , col=col.alpha(alpha=0.1 ,"black"))
-# }
-# lines(seq.gs , lambda.mean, col=1 , lw=2)
-# # lines(seq.gs , lambda.PI[1,], col=1 , lty=3)
-# # lines(seq.gs , lambda.PI[2,], col=1 , lty=3)
-# 
-# #####group specific effects
-# for(g in 1:max(list_area_2$group_index)){
-#   plot(list_area_2$group_size_std[list_area_2$group_index==g],list_area_2$hr_area_mean[list_area_2$group_index==g] , ylab="" , pch=19,
-#        xlab="" , col=group.pal[g], xlim=c(min(list_area_2$group_size_std),max(list_area_2$group_size_std)) , ylim=c(0,10.2) ,  xaxt="n" )
-#   title(min(d_hr_gs_3$group[d_hr_gs_3$group_index==g]), line = -1)
-#   axis( 1 , at= ( seq(from=5 , to=40 , by=5) - mean(list_area_2$group_size))/sd(list_area_2$group_size) 
-#         , labels= seq(from=5 , to=40 , by=5) )
-#   segments(x0=list_area_2$group_size_std[list_area_2$group_index==g] , y0=list_area_2$hr_area_low[list_area_2$group_index==g], 
-#            x1=list_area_2$group_size_std[list_area_2$group_index==g]  , y1=list_area_2$hr_area_high[list_area_2$group_index==g] , 
-#            lty=1 , col=group.pal[g])
-#   # seq.gs <- seq(from=min(list_area_2$group_size_std[list_area_2$group_index==g]), to=max(list_area_2$group_size_std[list_area_2$group_index==g]) , length=30)
-#   seq.gs <- seq(from=min(list_area_2$group_size_std), to=max(list_area_2$group_size_std) , length=30)
-#   lambda.link <- function(x) exp(post$v_mu[,1] + post$v[,g,1] +( post$v_mu[,2] + post$v[,g,2]) * x )
-#   lambda <- sapply( seq.gs ,lambda.link )
-#   lambda.mean <- apply( lambda , 2 , mean )
-#   lambda.PI <- apply( lambda , 2 , PI , prob=0.89 )
-#   for (i in 1:100) {
-#     lines(seq.gs , lambda[i,] , col=col.alpha(alpha=0.1 , group.pal[g]))
-#   }
-#   lines(seq.gs , lambda.mean, col=group.pal[g] , lw=2)
-# }
-# 
-# mtext("Group size", side=1, line=1, cex=2, outer=TRUE)  
-# mtext(expression(Home ~ range ~ area ~ (km^2)) , side=2, line=0.05, cex=2, outer=TRUE)  
-# 
-# dev.off()
+post <- extract.samples(fit_hr_gs_meas_er)
+pdf(file="plots/m_gs_hr_group_varef2.pdf" , width = 10 , height=7)
+par(mfrow = c(3, 4))
+par(cex = 0.6)
+par(mar = c(3, 3, 0, 0), oma = c(4, 4, 1, 1))
+
+plot(list_area_2$group_size_std,list_area_2$hr_area_mean , ylab="" ,
+     xlab="" , col=group.pal[list_area_2$group_index],
+     xlim=c(min(list_area_2$group_size_std),max(list_area_2$group_size_std)) , ylim=c(0,10.2) ,  xaxt="n"  , pch=19)
+title("marginal predictions", line = -1 )
+axis( 1 , at= ( seq(from=5 , to=40 , by=5) - mean(list_area_2$group_size))/sd(list_area_2$group_size)
+      , labels= seq(from=5 , to=40 , by=5) )
+# jittz <- rnorm(mean=0,sd=0.01 , n=list_area_2$N) #to get some seperation on x axis
+segments(x0=list_area_2$group_size_std , y0=list_area_2$hr_area_low,
+         x1=list_area_2$group_size_std  , y1=list_area_2$hr_area_high ,
+         lty=1 , col=group.pal[list_area_2$group_index])
+
+seq.gs <- seq(from=min(list_area_2$group_size_std), to=max(list_area_2$group_size_std) , length=30)
+lambda.link <- function(x) exp(post$v_mu[,1] +  post$v_mu[,2] * x )
+lambda <- sapply( seq.gs ,lambda.link )
+lambda.mean <- apply( lambda , 2 , mean )
+lambda.PI <- apply( lambda , 2 , PI , prob=0.89 )
+for (i in 1:100) {
+  lines(seq.mei , lambda[i,] , col=col.alpha(alpha=0.1 ,"black"))
+}
+lines(seq.gs , lambda.mean, col=1 , lw=2)
+lines(seq.gs , lambda.PI[1,], col=1 , lty=3)
+lines(seq.gs , lambda.PI[2,], col=1 , lty=3)
+
+#####group specific effects
+for(g in 1:max(list_area_2$group_index)){
+  plot(list_area_2$group_size_std[list_area_2$group_index==g],list_area_2$hr_area_mean[list_area_2$group_index==g] , ylab="" , pch=19,
+       xlab="" , col=group.pal[g], xlim=c(min(list_area_2$group_size_std),max(list_area_2$group_size_std)) , ylim=c(0,10.2) ,  xaxt="n" )
+  title(min(d_hr_gs_3$group[d_hr_gs_3$group_index==g]), line = -1)
+  axis( 1 , at= ( seq(from=5 , to=40 , by=5) - mean(list_area_2$group_size))/sd(list_area_2$group_size)
+        , labels= seq(from=5 , to=40 , by=5) )
+  segments(x0=list_area_2$group_size_std[list_area_2$group_index==g] , y0=list_area_2$hr_area_low[list_area_2$group_index==g],
+           x1=list_area_2$group_size_std[list_area_2$group_index==g]  , y1=list_area_2$hr_area_high[list_area_2$group_index==g] ,
+           lty=1 , col=group.pal[g])
+  # seq.gs <- seq(from=min(list_area_2$group_size_std[list_area_2$group_index==g]), to=max(list_area_2$group_size_std[list_area_2$group_index==g]) , length=30)
+  seq.gs <- seq(from=min(list_area_2$group_size_std), to=max(list_area_2$group_size_std) , length=30)
+  lambda.link <- function(x) exp(post$v_mu[,1] + post$v[,g,1] +( post$v_mu[,2] + post$v[,g,2]) * x )
+  lambda <- sapply( seq.gs ,lambda.link )
+  lambda.mean <- apply( lambda , 2 , mean )
+  lambda.PI <- apply( lambda , 2 , PI , prob=0.89 )
+  for (i in 1:100) {
+    lines(seq.gs , lambda[i,] , col=col.alpha(alpha=0.1 , group.pal[g]))
+  }
+  lines(seq.gs , lambda.mean, col=group.pal[g] , lw=2)
+}
+
+mtext("Group size", side=1, line=1, cex=2, outer=TRUE)
+mtext(expression(Home ~ range ~ area ~ (km^2)) , side=2, line=0.05, cex=2, outer=TRUE)
+
+dev.off()
 
 post <-extract.samples(fit_mei_rip)
 str(post)
