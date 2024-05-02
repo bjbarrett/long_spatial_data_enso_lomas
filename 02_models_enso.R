@@ -28,27 +28,6 @@ d_hr_gs_2 <- d_hr_gs_2[d_hr_gs_2$month=="JJ",]
 min(d_mei$year)
 d_mei$year_index_overall <- d_mei$year - 1990
 
-#all groups
-# plot(d_mei$mei~d_mei$date , col=elcol_pal[d_mei$phase_index] , pch="x" , cex=0.7 , ylim=c(-2.5,2.5))
-# lines(mei_spl, col = "grey3")
-# #points( d_hr_gs_2$date , standardize(d_hr_gs_2$hr_area_mean) , col=group_pal[d_hr_gs_2$group_index] , pch=19)
-# abline(v=d_mei$date[1:33] , col="grey")
-# for(i in c(1:3,5:11)){
-#   grp_spl <- with(d_hr_gs_2[d_hr_gs_2$group_index==i,], smooth.spline(date, mei ,spar=.5))
-#   lines(grp_spl, col = group_pal[i])
-# }
-
-#per group plot
-# for(i in 1:11){
-#   plot(d_mei$mei~d_mei$date , col=elcol_pal[d_mei$phase_index] , pch="x" ,
-#        cex=0.7 , ylim=c(-2.5,2.5) , main=min(d_hr_gs_2$group[d_hr_gs_2$group_index==i] ) )
-#   lines(mei_spl, col = "grey3")
-#   points( d_hr_gs_2$date[d_hr_gs_2$group_index==i] , 
-#           standardize(d_hr_gs_2$hr_area_mean[d_hr_gs_2$group_index==i]) , 
-#           col=group_pal[i] , pch=19)
-#   abline(v=d_mei$date[1:33] , col="grey")
-# }
-
 ###mei consolidate
 str(d_hr_gs_2)
 mean_df <- aggregate(mei ~ year, d_mei, mean)
@@ -88,7 +67,6 @@ list_area <- list(
   hr_area_mean=d_hr_gs_3$hr_area_mean ,
   hr_area_high=d_hr_gs_3$hr_area_high ,
   hr_area_low=d_hr_gs_3$hr_area_low ,
-  #hr_area_sd=d_hr_gs_3$hr_area_sd ,
   mean_annual_mei=d_hr_gs_3$mean_annual_mei ,
   min_annual_mei=d_hr_gs_3$min_annual_mei ,
   max_annual_mei=d_hr_gs_3$max_annual_mei ,
@@ -131,6 +109,7 @@ list_area_2 <- list(
 library(rethinking)
 library('dagitty')
 set_ulam_cmdstan(TRUE)
+
 ###visually inspect eate shape
 
 for(i in 10:20){

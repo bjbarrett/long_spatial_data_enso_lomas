@@ -1,37 +1,31 @@
 library(RColorBrewer)
 group.pal <- brewer.pal( max(d_hr_gs_3$group_index), "Spectral")
 group.pal <- c(group.pal[-6], "#CF9FFF")
-dev.off()
 
-# pdf(file="plots/all_da_groups_raw.pdf" , width = 8 , height=11)
-# par(mfrow = c(11, 1))
-# par(mar = rep(1,4) +0.1, oma = rep(0,4) +0.1)
-# #per group plot
-# for(i in 1:11){
-#   plot(d_mei$mei~d_mei$date , col=elcol_pal[d_mei$phase_index] , pch="x" ,
-#        cex=0.5 , ylim=c(-4,4) , main=min(d_hr_gs_3$group[d_hr_gs_3$group_index==i] ) )
-#   #lines(mei_spl, col = "grey3")
-#   points( d_hr_gs_3$date[d_hr_gs_3$group_index==i] , 
-#           standardize(d_hr_gs_3$hr_area_mean[d_hr_gs_3$group_index==i]) , 
-#           bg=group_pal[i] , pch=23 , cex=1.4 , col="darkgrey")
-#   
-#   # datez <- d_hr_gs_3$date[d_hr_gs_3$group_index==i]
-#   # gs_stdz_low <- standardize(d_hr_gs_3$hr_area_low[d_hr_gs_3$group_index==i])
-#   # gs_stdz_high <- standardize(d_hr_gs_3$hr_area_high[d_hr_gs_3$group_index==i])
-#   # 
-#   # for(j in 1:length(datez)){
-#   # segments( x0=datez[j] , y0=gs_stdz_low[j] , 
-#   #          x1=datez[j]  , y1=gs_stdz_high[j] , 
-#   #          lty=1 , col=group_pal[i] )
-#   # }
-#   
-# #for (i in 1:33) abline(v=d_mei$date[i+i*11] , col="grey")
-# abline(v=d_mei$date[month(d_mei$date)==1] , col="grey")
-#   
-# }
-# dev.off()
+blargh <- which(year(d_mei$date)<2020)
+plot(d_mei$mei[blargh] ~ d_mei$date[blargh] , col=elcol_pal[d_mei$phase_index[blargh]] , pch=19 ,
+  cex=0.7 , ylim=c(-3,3) , ylab="Multivariate ENSO Index" , xlab="Year"  )
+
+lines(mei_spl, col = "grey3")
+points(d_mei$mei[blargh]~d_mei$date[blargh] , col=elcol_pal[d_mei$phase_index[blargh]] , pch=19 , cex=0.7 )
+abline(v=d_mei$date[month(d_mei$date)==1] , col="grey")
 
 
+#load enviro data. climate
+era <- read.csv("data/era5_environmental_df.csv")
+era$date_ymd <- date(era$time)
+era$date_ym <- floor_date(era$date_ymd , "month")
+
+##temperature
+temp_daily_mean_c <- aggregate( (temp_2m - 273.15) ~ date_ym , era , mean) #convert from kelvin
+temp_daily_max_c <- aggregate( (temp_2m - 273.15) ~ date_ym , era , max) #convert from kelvin
+temp_daily_min_c <- aggregate( (temp_2m - 273.15) ~ date_ym , era , min) #convert from kelvin
+
+###precip
+precip_daily_mean_mm <- aggregate( total_precip ~ date_ym , era , sum)
+precip_daily_mean_mm[,2] <- precip_daily_mean_mm[,2]*1000
+
+ 
 ###hr post
 pdf(file="plots/all_hr_post.pdf" , width =11 , height=13)
   par(mfrow=c(13,10), oma=c(5,0,0,0), mar=c(0,0,0,0) )
@@ -143,8 +137,6 @@ pdf(file="plots/m_gs_hr_enso_group_varef.pdf" , width = 10 , height=7)
       lines(seq.mei , lambda[i,] , col=col.alpha(group.pal[g]) , alpha = 0.3)
     }
     lines(seq.mei , lambda.mean, col=group.pal[g] , lw=2)
-    # lines(seq.mei , lambda.PI[1,], col=1 , lty=3)
-    # lines(seq.mei , lambda.PI[2,], col=1 , lty=3)
   }
   mtext("Multivariate ENSO index (MEI)", side=1, line=1, cex=2, outer=TRUE)  
   mtext(expression(Home ~ range ~ area ~ (km^2)) , side=2, line=0.05, cex=2, outer=TRUE)  
